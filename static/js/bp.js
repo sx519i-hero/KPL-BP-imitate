@@ -2181,12 +2181,18 @@
     S.acting = true;
     setDockLocked(true);
     flashCell(ename);
+    // v52：先把这一手画到槽位上（本地回显），网络往返期间不再「点了没反应」；
+    // 服务端返回后由 applyMatch 整块重绘覆盖，失败就撤掉回显。
+    if (!tiePick) paintPendingEcho(action, ename);
 
     // v20：盲选阶段双方同时可落子，必须显式带上本方阵营
     var side = tiePick ? (m.player_side || (m.mode === 'free' ? m.side : null)) : null;
     call('bpAction', [m.match_id, ename, action, side], true).then(function (res) {
+      S.pendingEcho = null;
       applyMatch(res.match);
     }).catch(function (e) {
+      S.pendingEcho = null;
+      renderPanel();
       toast('行动失败：' + errMsg(e));
     }).then(function () {
       S.acting = false;
@@ -2198,6 +2204,24 @@
       S.turnKey = '';
       syncPendingTimer();
     });
+  }
+
+  /* v52：本地回显 —— 把刚点的英雄立刻画进下一个空槽，降低「点完等网络」的卡顿感 */
+  function paintPendingEcho(action, ename) {
+    var m = S.match;
+    if (!m) return;
+    var side = m.player_side || (m.mode === 'free' ? m.side : null);
+    if (!side) return;
+    var host = action === 'ban'
+      ? (side === 'blue' ? el.banBlue : el.banRed)
+      : (side === 'blue' ? el.pickBlue : el.pickRed);
+    if (!host) return;
+    var empty = host.querySelector('.empty-slot');
+    if (!empty) return;
+    var idx = parseInt(empty.getAttribute('data-idx') || '0', 10) || 0;
+    var html = (action === 'ban' ? banSlotHTML : pickSlotHTML)(side, idx, ename);
+    S.pendingEcho = { side: side, action: action, ename: ename };
+    empty.outerHTML = html.replace('class="slot ', 'class="slot is-pending ');
   }
 
   function flashCell(ename) {

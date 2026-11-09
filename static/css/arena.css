@@ -619,8 +619,7 @@
   position: fixed; inset: 0; top: 0; right: 0; bottom: 0; left: 0;
   background: rgba(46, 42, 38, .42);
   z-index: 60;
-  -webkit-backdrop-filter: blur(1.5px);
-  backdrop-filter: blur(1.5px);
+  /* v52：遮罩不用滤镜（打开/关闭时整屏滤镜开销大），底色调深一点点补偿 */
 }
 .sheet-mask[hidden], .modal-mask[hidden] { display: none; }
 
@@ -882,8 +881,7 @@
   z-index: 55;
   display: flex; align-items: center; justify-content: center;
   background: rgba(250, 247, 242, .68);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
+  /* v52：AI 遮罩同样去掉滤镜 */
 }
 .ai-mask[hidden] { display: none; }
 .ai-card {
@@ -1555,4 +1553,18 @@
   .tb-stage-side .tb-avatar { width: 46px; height: 46px; }
   .tb-stage-side .tb-name { font-size: 13px; }
   .tb-stage-lane { font-size: 11px; padding: 3px 8px; }
+}
+
+/* ------------------------------------------------------------
+   v52：本地回显（点了立刻落位，等服务端确认）
+   ------------------------------------------------------------ */
+.slot.is-pending {
+  opacity: .62;
+  filter: none;
+  box-shadow: 0 0 0 2px var(--brand) inset;
+  animation: slotEcho .18s ease-out;
+}
+@keyframes slotEcho {
+  from { transform: scale(.96); opacity: .35; }
+  to   { transform: scale(1);   opacity: .62; }
 }

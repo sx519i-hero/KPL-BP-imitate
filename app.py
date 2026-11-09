@@ -82,6 +82,8 @@ except Exception:  # noqa: BLE001
     IMAGES_DIR = os.path.join(STATIC_DIR, "images")
 
 MATCH_TTL_SECONDS = 30 * 60          # match 内存态滑动过期（30 分钟）
+# v52：小内存服务器上再兜一层硬上限 —— 同时存在的对局最多这么多，超出按最久未操作淘汰。
+MATCH_MAX_COUNT = int(os.environ.get("KPL_MATCH_MAX", "40") or 40)
 MATCH_SWEEP_MIN_INTERVAL = 30.0      # 清理扫描的最小间隔（秒）
 
 ALLOWED_BO = (1, 3, 5, 7, 9)   # v3：年度总决赛 BO9
@@ -1009,6 +1011,12 @@ def store_match(match):
         entry["match"] = match
         entry["touched"] = now
         MATCHES[match_id] = entry
+        # v52：超过硬上限时淘汰最久未操作的对局，避免长时间挂机把内存吃满
+        if len(MATCHES) > MATCH_MAX_COUNT:
+            drop = sorted(MATCHES.items(), key=lambda kv: float(kv[1].get("touched", 0.0)))
+            for mid, _entry in drop[: len(MATCHES) - MATCH_MAX_COUNT]:
+                if mid != match_id:
+                    MATCHES.pop(mid, None)
     return match_id
 
 
@@ -4368,12 +4376,87 @@ def api_room_host_start():
             pass
         app.logger.info("[room] 房间 %s 已在 0.0.0.0:%s 监听（mode=%s）",
                         room.room_id, port, mode)
+        try:
+            _start_room_guard()
+        except Exception:                                  # noqa: BLE001
+            app.logger.exception("[room] 房间守护线程启动失败（不影响使用）")
         state = room.state(room.host_pid)
         return ok({"room_id": room.room_id, "port": port, "mode": mode,
                    "league_id": league_id, "league_name": league.get("name") or league_id,
                    "ips": ips or ["127.0.0.1"], "pid": room.host_pid,
                    "access": ["http://%s:%s" % (ip, port) for ip in (ips or ["127.0.0.1"])],
                    "state": state})
+
+
+_ROOM_GUARD = {"thread": None, "stop": None, "restarts": 0, "last_error": ""}
+
+
+def _room_guard_loop(stop_event, interval=3.0):
+    """v52：房间端口守护。
+
+    用户反馈「建好房间后端口会自己关掉」。除了让房间线程内部永不退出（room_server），
+    这里再兜一层：每 3 秒探一次端口，发现线程死了或端口不再监听，就原地重新监听同一个端口，
+    房间对象（玩家、赛程、比分）全部保留，不会丢进度。
+    """
+    while not stop_event.is_set():
+        try:
+            stop_event.wait(interval)
+            if stop_event.is_set():
+                break
+            with _ROOM_LOCK:
+                handle = _ROOM_HANDLE.get("handle")
+                room = _ROOM_HANDLE.get("room")
+                port = _ROOM_HANDLE.get("port")
+            if handle is None or room is None or not port:
+                continue
+            if handle.alive() and _port_in_use(int(port)):
+                continue
+            app.logger.warning("[room] 检测到房间端口 %s 异常（线程存活=%s），正在自动恢复",
+                               port, handle.alive())
+            try:
+                handle.stop()
+            except Exception:                              # noqa: BLE001
+                pass
+            try:
+                new_handle = room_server.start_server(room, int(port))
+            except Exception as exc:                       # noqa: BLE001
+                _ROOM_GUARD["last_error"] = str(exc)
+                app.logger.warning("[room] 端口 %s 自动恢复失败：%s", port, exc)
+                with _ROOM_LOCK:
+                    _ROOM_HANDLE.update({"handle": None, "error": str(exc)})
+                continue
+            with _ROOM_LOCK:
+                _ROOM_HANDLE.update({"handle": new_handle, "error": ""})
+            _ROOM_GUARD["restarts"] += 1
+            _ROOM_GUARD["last_error"] = ""
+            app.logger.info("[room] 端口 %s 已自动恢复（第 %d 次）", port, _ROOM_GUARD["restarts"])
+        except Exception:                                  # noqa: BLE001
+            app.logger.exception("[room] 房间守护线程异常")
+
+
+def _start_room_guard():
+    threading = __import__("threading")
+    with _ROOM_LOCK:
+        if _ROOM_GUARD.get("thread") is not None:
+            return
+        stop_event = threading.Event()
+        th = threading.Thread(target=_room_guard_loop, args=(stop_event,),
+                              name="kpl-room-guard", daemon=True)
+        th.start()
+        _ROOM_GUARD["thread"] = th
+        _ROOM_GUARD["stop"] = stop_event
+
+
+def _stop_room_guard():
+    with _ROOM_LOCK:
+        ev = _ROOM_GUARD.get("stop")
+        _ROOM_GUARD["thread"] = None
+        _ROOM_GUARD["stop"] = None
+    if ev is not None:
+        try:
+            ev.set()
+        except Exception:                                  # noqa: BLE001
+            pass
 
 
 @app.route("/api/room/host/stop", methods=["POST"])
@@ -4390,6 +4473,7 @@ def api_room_host_stop():
         if room is not None and room_engine is not None:
             room_engine.drop_room(room.room_id)
         _ROOM_HANDLE.update({"handle": None, "room": None, "port": None, "error": ""})
+        _stop_room_guard()
         return ok({"stopped": True})
 
 
@@ -4478,6 +4562,8 @@ def api_room_ports():
     for row in data["ports"]:
         probe.append({"port": row["port"], "in_use": _port_in_use(row["port"])})
     data["probe"] = probe
+    data["guard"] = {"restarts": _ROOM_GUARD.get("restarts", 0),
+                     "last_error": _ROOM_GUARD.get("last_error", "")}
     data["note"] = "只统计本程序自己拉起的联机房间；端口被其它程序占用时这里看不到，可用 netstat 检查。"
     return ok(data)
 
@@ -4509,6 +4595,7 @@ def api_room_ports_close():
         if room is not None and room_engine is not None:
             room_engine.drop_room(room.room_id)
         _ROOM_HANDLE.update({"handle": None, "room": None, "port": None, "error": ""})
+        _stop_room_guard()
         app.logger.info("[room] 端口 %s 已释放（closed=%s）", want, closed)
         return ok({"closed": closed, "port": want,
                    "in_use": _port_in_use(want)})
@@ -5107,7 +5194,20 @@ def _warm_data_caches():
         app.logger.debug("[warm] 统计缓存预热失败", exc_info=True)
 
 
-threading.Thread(target=_warm_data_caches, daemon=True, name="kpl-warm-cache").start()
+def _warm_later():
+    """v52：延迟 8 秒再预热。
+
+    以前是导入即预热，会和启动后的第一批请求抢 CPU（2 核云服务器上首屏会明显卡一下）。
+    现在先让首页/对局请求跑完，再在后台补算「更新数据」页要用的统计。
+    """
+    try:
+        time.sleep(8.0)
+    except Exception:  # noqa: BLE001
+        pass
+    _warm_data_caches()
+
+
+threading.Thread(target=_warm_later, daemon=True, name="kpl-warm-cache").start()
 
 
 def _drop_data_caches():
@@ -5416,6 +5516,35 @@ if __name__ == "__main__":
     except Exception as _exc:                  # noqa: BLE001
         _say("[性能] keep-alive 开启失败（不影响使用）：%s" % _exc)
 
+    # v52：云端部署用 waitress（纯 Python 生产级 WSGI，线程池 + 连接上限，
+    # 不会像 werkzeug 开发服务器那样一个 keep-alive 连接常驻一个线程导致线程/内存上涨）。
+    # 没装 waitress 时自动退回 werkzeug，本地体验不变。
+    threads = int(os.environ.get("KPL_THREADS", "6") or 6)
+    _waitress_serve = None
+    try:
+        from waitress import serve as _waitress_serve   # type: ignore[no-redef]
+    except Exception:                          # noqa: BLE001
+        _say("[服务] 未安装 waitress，使用 Flask 自带服务器（单机够用；云服务器建议 pip install waitress）")
+    if _waitress_serve is not None:
+        _say("[服务] waitress 线程池模式：%d 线程 / 连接上限 64" % max(2, threads))
+        try:
+            _waitress_serve(
+                app,
+                host=host,
+                port=port,
+                threads=max(2, threads),
+                connection_limit=64,
+                channel_timeout=60,
+                cleanup_interval=30,
+                ident=None,
+            )
+        except OSError as exc:
+            _pause_before_exit(
+                "启动失败：%s；最常见原因是端口 %d 已被占用（比如游戏已经开着一个窗口）；"
+                "请先关掉之前的黑色窗口，或在「设置 → 服务器访问地址」里换端口。" % (exc, port)
+            )
+            sys.exit(1)
+        sys.exit(0)
     try:
         app.run(host=host, port=port, debug=False, threaded=True, use_reloader=False)
     except OSError as exc:                     # 端口在检测后被抢占等

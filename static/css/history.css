@@ -32,8 +32,7 @@
   justify-content: center;
   padding: 12px;
   background: rgba(60, 40, 26, .48);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
+  /* v52：弹层遮罩去掉滤镜 */
 }
 
 .hx-mask[hidden] { display: none; }

@@ -111,9 +111,9 @@ button{ cursor:pointer; background:none; border:none; padding:0; }
   min-height:52px;
   padding:8px 14px;
   padding-top:calc(8px + env(safe-area-inset-top));
-  background:rgba(250,247,242,.92);
-  backdrop-filter:saturate(180%) blur(10px);
-  -webkit-backdrop-filter:saturate(180%) blur(10px);
+  /* v52：去掉 backdrop-filter（固定元素每帧重绘滤镜，QtWebEngine/弱 GPU 上明显掉帧），
+     改成接近不透明的底色，观感几乎一致但几乎零渲染成本。 */
+  background:rgba(250,247,242,.985);
   border-bottom:1px solid var(--line);
 }
 .topbar-title{ font-size:16px; font-weight:800; letter-spacing:.02em; }
@@ -500,7 +500,7 @@ span.avatar-fallback{
   font-weight:800;
   line-height:1;
   letter-spacing:.01em;
-  backdrop-filter:blur(2px);
+  /* v52：格子角标不再开滤镜层（133 个格子 = 133 个滤镜，滚动时很贵） */
 }
 .hero-cell .badge.badge-ban{ background:var(--red); }
 .hero-cell .badge.badge-pick{ background:var(--brand); }
@@ -648,9 +648,7 @@ span.avatar-fallback{
   display:flex;
   height:var(--tabbar-h);
   padding-bottom:env(safe-area-inset-bottom);
-  background:rgba(255,253,249,.97);
-  backdrop-filter:saturate(180%) blur(12px);
-  -webkit-backdrop-filter:saturate(180%) blur(12px);
+  background:rgba(255,253,249,.99);
   border-top:1px solid var(--line);
   box-shadow:0 -2px 12px rgba(122,62,18,.05);
 }
@@ -711,7 +709,7 @@ span.avatar-fallback{
   opacity:0;
   transform:translate(-50%,10px);
   transition:opacity .2s var(--ease), transform .2s var(--ease);
-  backdrop-filter:blur(6px);
+  /* v52：toast 不再开滤镜层 */
   box-shadow:var(--shadow-lg);
 }
 .toast.toast-show{ opacity:1; transform:translate(-50%,0); }

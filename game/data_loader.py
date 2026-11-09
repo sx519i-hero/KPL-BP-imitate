@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import threading
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -71,7 +72,12 @@ _SIDES: Tuple[str, str] = ("blue", "red")
 # --------------------------------------------------------------------------- #
 
 _LOCK = threading.RLock()
-_FILE_CACHE: Dict[str, Tuple[Tuple[int, int], Any]] = {}
+# v52：内存优化 —— 原来的文件缓存是无上限的，切 8 个赛季会把 8 份
+# bp_history（每个 1.7MB JSON、解析后十几 MB）全部留在内存里。
+# 现在改成 LRU（只留最近用的几个），并且超过阈值的大文件不缓存（只在构建上下文时读一次）。
+_FILE_CACHE: "OrderedDict[str, Tuple[Tuple[int, int], Any]]" = OrderedDict()
+_FILE_CACHE_MAX = 10                    # 最多缓存 10 个文件
+_FILE_CACHE_SKIP_BYTES = 400 * 1024     # 大于 400KB 的文件（主要是 bp_history）不驻留内存
 
 
 def _sig(path: Path) -> Tuple[int, int]:
@@ -100,8 +106,12 @@ def _read_json(path: Path, default: Any = None) -> Any:
             data = None
     if not isinstance(data, dict):
         data = default
-    with _LOCK:
-        _FILE_CACHE[key] = (sig, data)
+    if sig[1] <= _FILE_CACHE_SKIP_BYTES:
+        with _LOCK:
+            _FILE_CACHE[key] = (sig, data)
+            _FILE_CACHE.move_to_end(key)
+            while len(_FILE_CACHE) > _FILE_CACHE_MAX:
+                _FILE_CACHE.popitem(last=False)
     return data
 
 
@@ -1057,7 +1067,9 @@ def _mode_int(values: Iterable[Any]) -> Optional[int]:
     return max(counts.items(), key=lambda kv: (kv[1], kv[0]))[0]
 
 
-_CTX_CACHE: Dict[Optional[str], Tuple[Tuple[str, ...], LeagueContext]] = {}
+# v52：只保留最近用过的 2 个赛季上下文（切赛季会释放旧的，2GB 小内存服务器很关键）
+_CTX_CACHE: "OrderedDict[Optional[str], Tuple[Tuple[str, ...], LeagueContext]]" = OrderedDict()
+_CTX_CACHE_MAX = 2
 
 
 def _context_signature(league_id: Optional[str]) -> Tuple[str, ...]:
@@ -1206,10 +1218,14 @@ def league_context(league_id: Optional[str] = None) -> LeagueContext:
     with _LOCK:
         hit = _CTX_CACHE.get(lid)
         if hit is not None and hit[0] == signature:
+            _CTX_CACHE.move_to_end(lid)
             return hit[1]
     context = _build_context(lid)
     with _LOCK:
         _CTX_CACHE[lid] = (signature, context)
+        _CTX_CACHE.move_to_end(lid)
+        while len(_CTX_CACHE) > _CTX_CACHE_MAX:
+            _CTX_CACHE.popitem(last=False)
     return context
 
 

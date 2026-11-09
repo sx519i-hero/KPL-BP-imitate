@@ -351,14 +351,29 @@ class _Handle:
         self.server = server
         self.thread = thread
         self.port = port
+        self.stopping = False
+        self.restarts = 0
+
+    def alive(self) -> bool:
+        """服务线程还活着吗（v52：用于「端口自己关了」的自动恢复）。"""
+        try:
+            return bool(self.thread and self.thread.is_alive() and not self.stopping)
+        except Exception:                                   # noqa: BLE001
+            return False
 
     def stop(self) -> None:
+        self.stopping = True
         try:
             self.server.shutdown()
         except Exception:                                   # noqa: BLE001
             pass
         try:
             self.thread.join(timeout=3)
+        except Exception:                                   # noqa: BLE001
+            pass
+        # 兜底：有些平台上 shutdown 后 socket 仍挂在监听态，显式关掉
+        try:
+            self.server.server_close()
         except Exception:                                   # noqa: BLE001
             pass
 
@@ -370,7 +385,20 @@ def start_server(room: room_engine.Room, port: int) -> _Handle:
         server = make_server("0.0.0.0", int(port), app, threaded=True)
     except OSError as exc:
         raise RoomServerError("端口 %s 无法监听（可能已被占用）：%s" % (port, exc)) from exc
-    thread = threading.Thread(target=server.serve_forever, name="kpl-room-%s" % port,
+    # v52：外面包一层「永不退出」的循环。
+    # 以前 serve_forever 一旦抛异常（Windows 上偶发的 accept 失败、杀毒软件重置监听 socket 等），
+    # 房间线程就静默结束 —— 表现就是「建好房间后端口自己关了」。
+    def _serve_forever() -> None:
+        while True:
+            try:
+                server.serve_forever(poll_interval=0.5)
+                return                      # 只有 shutdown() 才会正常退出
+            except Exception as exc:        # noqa: BLE001
+                LOGGER.exception("[room] 房间服务异常，1 秒后自动恢复监听：%s", exc)
+                time.sleep(1.0)
+                continue
+
+    thread = threading.Thread(target=_serve_forever, name="kpl-room-%s" % port,
                               daemon=True)
     thread.start()
     LOGGER.info("[room] 房间 %s 已在 0.0.0.0:%s 监听", room.room_id, port)

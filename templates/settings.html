@@ -128,6 +128,18 @@
         <input class="input" id="scWeakGap" type="number" min="0" max="20" step="0.1"></div>
     </div>
 
+    <h3 class="v4-subtitle">版本强度（小样本收缩 + 出场热度）</h3>
+    <div class="v4-row">
+      <div class="field grow"><label class="field-label" for="scShrinkK">小样本收缩强度（等效场次）</label>
+        <input class="input" id="scShrinkK" type="number" min="0" max="200" step="1"></div>
+      <div class="field grow"><label class="field-label" for="scHeatWeight">出场/ban 热度权重</label>
+        <input class="input" id="scHeatWeight" type="number" min="0" max="1" step="0.05"></div>
+    </div>
+    <p class="v4-hint">
+      版本强度 = 收缩后胜率 × ((1−热度权重) + 热度权重 × 热度/最大热度)。
+      收缩强度越大越不相信小样本（1 场 100% 不会排第一）；热度权重 0 = 只看胜率，1 = 只看热度。
+    </p>
+
     <div class="v4-actions">
       <button type="button" class="btn btn-primary" id="btnSaveScoring">保存评分细则</button>
       <button type="button" class="btn btn-ghost" id="btnResetScoring">恢复默认</button>

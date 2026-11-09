@@ -13,7 +13,7 @@
 ``weights``                        五项基准权重（整数，总和必须 = 100）
     system    体系完整度     30   前排 / 输出 / 开团 / 续航是否齐全
     counter   对位克制       25   官方「压制 / 被压制」关系（pvp.qq.com）算净优势，无数据时转移权重
-    version   版本强度       20   该赛季 KPL 真实胜率 min–max 线性映射
+    version   版本强度       20   胜率按场次收缩后 × 出场/ban 热度（方案 B）
     lane      分路覆盖       15   5 个 pick 与该赛季真实 lane_list 的最优匹配
     weakness  阵容短板       10   1 −（分路缺口 + 胜率明显偏低的英雄）
 
@@ -21,6 +21,8 @@
 ``lane_secondary``                 0.75   只命中副分路的得分系数（0~1.5）
 ``lane_secondary_discount``        0.85   副分路整体折算比例（0~1.5）
 ``weakness_win_rate_gap``          1.5    胜率低于同分路中位数多少个百分点算「短板」（0~20）
+``version_shrink_k``               15.0   「版本强度」小样本收缩强度（等效先验场次，0~200）
+``version_heat_weight``            0.35   「版本强度」里出场/ban 热度的权重（0 = 只看胜率，1 = 只看热度）
 
 权重转移
 --------
@@ -58,6 +60,8 @@ DEFAULTS: Dict[str, Any] = {
     "lane_secondary": 0.75,
     "lane_secondary_discount": 0.85,
     "weakness_win_rate_gap": 1.5,
+    "version_shrink_k": 15.0,
+    "version_heat_weight": 0.35,
 }
 
 #: 给前端 / 文档用的参数说明（顺序即展示顺序）
@@ -125,6 +129,22 @@ PARAM_META: List[Dict[str, Any]] = [
         "min": 0, "max": 20, "step": 0.1, "unit": "个百分点",
         "desc": "所选英雄胜率低于同分路中位数超过这个数值时，计为「阵容短板」。",
     },
+    {
+        "key": "version_shrink_k",
+        "label": "版本强度·小样本收缩强度",
+        "default": 15.0,
+        "min": 0, "max": 200, "step": 1, "unit": " 场",
+        "desc": ("「版本强度」不再直接看胜率，而是 (胜场 + k×联赛均值)/(场次 + k)。"
+                 "k 越大越不相信小样本：k=15 时 1 场 100% 只算 0.53，k=0 等于退回纯胜率。"),
+    },
+    {
+        "key": "version_heat_weight",
+        "label": "版本强度·出场热度权重",
+        "default": 0.35,
+        "min": 0, "max": 1, "step": 0.05, "unit": "",
+        "desc": ("收缩后胜率之外再乘热度系数：((1-w) + w×热度/最大热度)，热度 = 该赛季出场率 + ban 率。"
+                 "w=0 只看胜率，w=1 完全按热度（推荐 0.35：既强又常被 ban/选的英雄分最高）。"),
+    },
 ]
 
 
@@ -167,13 +187,18 @@ def _normalize(raw: Any) -> Dict[str, Any]:
             scaled["system"] = max(0, scaled["system"] + diff)
             data["weights"] = scaled
     for key, default in (("lane_primary", 1.0), ("lane_secondary", 0.75),
-                         ("lane_secondary_discount", 0.85), ("weakness_win_rate_gap", 1.5)):
+                         ("lane_secondary_discount", 0.85), ("weakness_win_rate_gap", 1.5),
+                         ("version_shrink_k", 15.0), ("version_heat_weight", 0.35)):
         try:
             value = float(raw.get(key, default))
         except (TypeError, ValueError):
             value = default
         if key == "weakness_win_rate_gap":
             data[key] = round(max(0.0, min(20.0, value)), 2)
+        elif key == "version_shrink_k":
+            data[key] = round(max(0.0, min(200.0, value)), 1)
+        elif key == "version_heat_weight":
+            data[key] = round(max(0.0, min(1.0, value)), 3)
         else:
             data[key] = round(max(0.0, min(1.5, value)), 3)
     return data
@@ -212,7 +237,7 @@ def save_rules(patch: Any) -> Dict[str, Any]:
                 if key in weights:
                     current["weights"][key] = weights[key]
         for key in ("lane_primary", "lane_secondary", "lane_secondary_discount",
-                    "weakness_win_rate_gap"):
+                    "weakness_win_rate_gap", "version_shrink_k", "version_heat_weight"):
             if key in patch:
                 current[key] = patch[key]
     rules = _normalize(current)
@@ -248,6 +273,14 @@ def apply_rules(rules: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         scorer._LANE_SECONDARY = float(rules.get("lane_secondary", 0.75))
         scorer._SECONDARY_DISCOUNT = float(rules.get("lane_secondary_discount", 0.85))
         scorer._WEAKNESS_WIN_RATE_GAP = float(rules.get("weakness_win_rate_gap", 1.5))
+        # v52b：版本强度（方案 B：收缩 × 出场热度）
+        scorer.VERSION_SHRINK_K = float(rules.get("version_shrink_k", 15.0))
+        scorer.VERSION_HEAT_WEIGHT = float(rules.get("version_heat_weight", 0.35))
+        # 参数变了，清掉版本强度的分布缓存（bounds/p0 会重算）
+        try:
+            scorer._VERSION_CACHE["key"] = None
+        except Exception:                               # noqa: BLE001
+            pass
     except Exception as exc:                            # noqa: BLE001
         print("[scoring] 应用评分细则失败（用默认值继续）：%s" % exc)
     return rules

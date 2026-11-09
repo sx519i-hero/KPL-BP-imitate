@@ -60,6 +60,8 @@
     scSecondary: byId('scSecondary'),
     scDiscount: byId('scDiscount'),
     scWeakGap: byId('scWeakGap'),
+    scShrinkK: byId('scShrinkK'),
+    scHeatWeight: byId('scHeatWeight'),
     btnSaveScoring: byId('btnSaveScoring'),
     btnResetScoring: byId('btnResetScoring'),
     resState: byId('resState'),
@@ -293,6 +295,8 @@
     if (el.scSecondary) el.scSecondary.value = rules.lane_secondary;
     if (el.scDiscount) el.scDiscount.value = rules.lane_secondary_discount;
     if (el.scWeakGap) el.scWeakGap.value = rules.weakness_win_rate_gap;
+    if (el.scShrinkK) el.scShrinkK.value = rules.version_shrink_k;
+    if (el.scHeatWeight) el.scHeatWeight.value = rules.version_heat_weight;
     if (el.scoringPath) el.scoringPath.textContent = scoring.path || 'data/scoring_rules.json';
     updateScoringTotal();
 
@@ -319,7 +323,9 @@
       lane_primary: Number(el.scPrimary.value),
       lane_secondary: Number(el.scSecondary.value),
       lane_secondary_discount: Number(el.scDiscount.value),
-      weakness_win_rate_gap: Number(el.scWeakGap.value)
+      weakness_win_rate_gap: Number(el.scWeakGap.value),
+      version_shrink_k: el.scShrinkK ? Number(el.scShrinkK.value) : undefined,
+      version_heat_weight: el.scHeatWeight ? Number(el.scHeatWeight.value) : undefined
     };
   }
 

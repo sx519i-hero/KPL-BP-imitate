@@ -174,6 +174,16 @@ def _version_ratio(league_ctx: Any, ename: int) -> Optional[float]:
     * 热度 = ``(pick_rate + ban_rate) / 该赛季最大值``。
     * 两者都缺失时返回 ``None``（调用方会把该分量权重让渡出去）。
     """
+    # v52b：与评分器统一口径 —— 胜率先按场次收缩，再叠加热度（方案 B）。
+    # 这样 AI 选人和结算评分不会「两套标准」（以前 1 场 100% 的英雄 AI 也当神抢）。
+    try:
+        from . import scorer as _scorer
+
+        strength = _scorer.version_strength_for(league_ctx, ename)
+    except Exception:                                   # noqa: BLE001
+        strength = None
+    if strength is not None:
+        return strength
     win_ratio = league_ctx.win_rate_ratio(ename)
     hero = league_ctx.hero(ename)
     pick_rate = hero.get("pick_rate")

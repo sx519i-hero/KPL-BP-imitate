@@ -234,6 +234,18 @@ def _assign_slots(
 # 数据源：王者荣耀官网英雄详情页「英雄关系」里的 压制英雄 / 被压制英雄，
 # 由 scraper.py 的 step_hero_relations() 抓成 data/hero_relations.json。
 # 抓不到的英雄（新英雄还没有详情页）在这里就是缺席 —— 缺数据时 counter 项不激活。
+# --------------------------------------------------------------------------- #
+# 「版本强度」可调参数（v52b，方案 B：贝叶斯收缩 × 出场热度）
+# --------------------------------------------------------------------------- #
+# 只用真实公开字段：win_count / pick_count / win_rate / pick_rate / ban_rate。
+#   ① 小样本收缩：adj = (胜场 + k × 联赛均值) / (场次 + k)      —— 1 场 100% 不会排第一
+#   ② 热度加权：  strength = adj × ((1 - w) + w × 热度 / 最大热度) —— 又强又常被 ban/选 才最高
+#     热度 = pick_rate + ban_rate（该赛季真实 BP 热度）
+VERSION_SHRINK_K = 15.0        # 收缩强度（等效「先验算多少场」）
+VERSION_HEAT_WEIGHT = 0.35     # 热度权重（0 = 只看收缩后胜率，1 = 完全按热度）
+
+_VERSION_CACHE: Dict[str, Any] = {"key": None, "p0": 0.5, "max_heat": 0.0, "bounds": (0.0, 1.0)}
+
 _RELATIONS_CACHE: Dict[str, Any] = {"mtime": None, "map": {}}
 
 
@@ -245,6 +257,87 @@ def _relations_path() -> str:
     except Exception:  # noqa: BLE001
         here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(here, "data", "hero_relations.json")
+
+
+def _num(value, default=None):
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+    return default
+
+
+def _version_baseline(league_ctx) -> Dict[str, Any]:
+    """整季的收缩基准：联赛平均胜率 p0、最大热度、strength 的 min/max。"""
+    heroes = list((getattr(league_ctx, "heroes", None) or {}).values())
+    key = "|".join(sorted(str(h.get("ename")) for h in heroes)) + "#" + str(
+        int(VERSION_SHRINK_K * 100)) + "#" + str(int(VERSION_HEAT_WEIGHT * 100))
+    if _VERSION_CACHE.get("key") == key:
+        return _VERSION_CACHE
+
+    tot_g = 0.0
+    tot_w = 0.0
+    max_heat = 0.0
+    rows = []
+    for hero in heroes:
+        games = _num(hero.get("pick_count"))
+        if not games or games <= 0:
+            continue
+        wins = _num(hero.get("win_count"))
+        if wins is None:
+            wr = _num(hero.get("win_rate"))
+            if wr is None:
+                continue
+            wins = wr / 100.0 * games
+        heat = (_num(hero.get("pick_rate"), 0.0) or 0.0) + (_num(hero.get("ban_rate"), 0.0) or 0.0)
+        tot_g += games
+        tot_w += wins
+        if heat > max_heat:
+            max_heat = heat
+        rows.append((games, wins, heat))
+
+    p0 = (tot_w / tot_g) if tot_g > 0 else 0.5
+    k = max(0.0, VERSION_SHRINK_K)
+    w_heat = max(0.0, min(1.0, VERSION_HEAT_WEIGHT))
+    strengths = []
+    for games, wins, heat in rows:
+        adj = (wins + k * p0) / (games + k) if (games + k) > 0 else p0
+        heat_ratio = (heat / max_heat) if max_heat > 0 else 0.0
+        strengths.append(adj * ((1.0 - w_heat) + w_heat * heat_ratio))
+    bounds = (min(strengths), max(strengths)) if strengths else (0.0, 1.0)
+
+    _VERSION_CACHE.update({"key": key, "p0": p0, "max_heat": max_heat, "bounds": bounds})
+    return _VERSION_CACHE
+
+
+def version_strength_for(league_ctx, ename: int) -> Optional[float]:
+    """单个英雄的「版本强度」0~1（收缩胜率 × 热度加权后，在整季范围内归一化）。"""
+    heroes = getattr(league_ctx, "heroes", None) or {}
+    hero = heroes.get(ename) if isinstance(heroes, dict) else None
+    if not isinstance(hero, dict):
+        return None
+    games = _num(hero.get("pick_count"))
+    if not games or games <= 0:
+        return None
+    wins = _num(hero.get("win_count"))
+    if wins is None:
+        wr = _num(hero.get("win_rate"))
+        if wr is None:
+            return None
+        wins = wr / 100.0 * games
+    base = _version_baseline(league_ctx)
+    p0 = base["p0"]
+    k = max(0.0, VERSION_SHRINK_K)
+    adj = (wins + k * p0) / (games + k) if (games + k) > 0 else p0
+    heat = (_num(hero.get("pick_rate"), 0.0) or 0.0) + (_num(hero.get("ban_rate"), 0.0) or 0.0)
+    max_heat = base["max_heat"]
+    w_heat = max(0.0, min(1.0, VERSION_HEAT_WEIGHT))
+    heat_ratio = (heat / max_heat) if max_heat > 0 else 0.0
+    strength = adj * ((1.0 - w_heat) + w_heat * heat_ratio)
+    lo, hi = base["bounds"]
+    if hi <= lo:
+        return 0.5
+    return max(0.0, min(1.0, (strength - lo) / (hi - lo)))
 
 
 def counter_map() -> Dict[int, Dict[str, Any]]:
@@ -357,10 +450,12 @@ def score_lineup(
     # 不能把整个 system 项判为“无数据”（否则会连带把 system 权重也转移掉）。
     system_active = bool(pick_list)
 
-    # ---- version：该赛季 win_rate min–max 线性映射 ----
+    # ---- version：方案 B（贝叶斯收缩 × 出场热度），见 version_strength_for ----
     ratios: List[float] = []
     for hero in heroes:
-        ratio = league_ctx.win_rate_ratio(hero.get("ename"))
+        ratio = version_strength_for(league_ctx, hero.get("ename"))
+        if ratio is None:
+            ratio = league_ctx.win_rate_ratio(hero.get("ename"))   # 兜底：旧口径
         if ratio is not None:
             ratios.append(ratio)
     version_ratio = sum(ratios) / float(len(ratios)) if ratios else None
@@ -747,7 +842,8 @@ def score_detail(
             if version_ratio is None:
                 reason = "所选英雄暂无该赛季胜率数据，该项不参与评分（权重已转移）"
             else:
-                reason = "阵容平均胜率强度 %.0f%%（该赛季横向比较：0%% 最弱、100%% 最强）" % (
+                reason = ("阵容平均版本强度 %.0f%%（该赛季横向比较：胜率已按场次收缩，"
+                          "并叠加出场+ban 热度加权，0%% 最弱、100%% 最强）") % (
                     float(version_ratio) * 100)
         elif key == "lane":
             ratio = lane_ratio if matched else None
