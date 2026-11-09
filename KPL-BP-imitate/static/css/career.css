@@ -1,0 +1,1228 @@
+/* ==========================================================================
+   生涯模式 v3 —— 对齐设计稿：亮橙顶栏 / 白卡 / 橙主按钮 / 圆角 14px
+   所有颜色都从 main.css 的令牌派生，避免和既有页面冲突。
+   ========================================================================== */
+
+.career-page {
+  --c-brand: #F5A623;
+  --c-brand-2: #FFB84D;
+  --c-brand-ink: #8A5200;
+  --c-soft: #FFF4E2;
+  --c-soft-2: #FFE6BC;
+  --c-line: #F2E7D8;
+  --c-ink: #2F2A24;
+  --c-muted: #9C8F7E;
+  --c-bg: #F6F5F3;
+  /* 底部固定条（模拟/推进）+ 全局 tabbar 会遮住最后几条内容，留足安全距离 */
+  padding-bottom: calc(var(--tabbar-h, 60px) + 96px);
+}
+
+/* 赛季进程页：底部是双按钮固定条，再多留一点 */
+.career-page[data-page="career-season"] {
+  padding-bottom: calc(var(--tabbar-h, 60px) + 108px);
+}
+
+/* ---------------------------- 顶栏 ---------------------------- */
+.career-page .c-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -4px -12px 14px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--c-brand) 0%, #FFB53F 100%);
+  color: #fff;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 8px 22px rgba(245, 166, 35, .28);
+}
+.career-page .c-back {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+}
+.career-page .c-back:hover { background: rgba(255, 255, 255, .3); }
+.career-page .c-topbar h1 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-align: center;
+}
+.career-page .c-topbar .c-topbar-r { flex: 0 0 auto; width: 34px; }
+
+/* ---------------------------- 白卡 ---------------------------- */
+.career-page .c-card {
+  position: relative;
+  margin-bottom: 12px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--c-line);
+  box-shadow: 0 2px 10px rgba(47, 42, 36, .04);
+}
+.career-page .c-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-ink);
+}
+.career-page .c-card-title .c-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-muted);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+/* ---------------------------- 教练卡 ---------------------------- */
+.career-page .c-coach {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.career-page .c-coach-avatar {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 62px;
+  border-radius: 16px;
+  background: linear-gradient(140deg, #FFE2C0, #FFD1A1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+.career-page .c-coach-main { flex: 1 1 auto; min-width: 0; }
+.career-page .c-coach-name {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--c-ink);
+  letter-spacing: .5px;
+}
+.career-page .c-coach-sub { margin: 0; font-size: 12.5px; color: var(--c-muted); }
+.career-page .c-coach-no {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  font-size: 11px;
+  color: var(--c-muted);
+  letter-spacing: .6px;
+}
+
+/* ---------------------------- 统计 ---------------------------- */
+.career-page .c-stat-block { margin-bottom: 14px; }
+.career-page .c-stat-block:last-child { margin-bottom: 0; }
+.career-page .c-stat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.career-page .c-stat-head strong { font-size: 15px; color: var(--c-ink); }
+.career-page .c-tier {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #F2F1EF;
+  color: #8D867C;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.career-page .c-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.career-page .c-stat-cell {
+  text-align: center;
+  padding: 2px 0;
+  position: relative;
+}
+.career-page .c-stat-cell + .c-stat-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12%;
+  height: 76%;
+  border-left: 1px solid var(--c-line);
+}
+.career-page .c-stat-num {
+  display: block;
+  font-size: 21px;
+  font-weight: 900;
+  color: var(--c-ink);
+  font-variant-numeric: tabular-nums;
+}
+.career-page .c-stat-label {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--c-muted);
+}
+
+/* ---------------------------- 当前生涯 ---------------------------- */
+.career-page .c-current-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.career-page .c-current-name {
+  margin: 6px 0 6px;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--c-ink);
+  letter-spacing: .5px;
+}
+.career-page .c-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--c-brand);
+  color: var(--c-brand-ink);
+  background: var(--c-soft);
+  font-size: 11.5px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.career-page .c-current-league {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--c-muted);
+  border-left: 3px solid var(--c-soft-2);
+  padding-left: 8px;
+}
+.career-page .c-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: #F1EEE9;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.career-page .c-progress > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--c-brand), var(--c-brand-2));
+  transition: width .35s ease;
+}
+.career-page .c-current-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.career-page .c-record { font-size: 13px; color: var(--c-muted); }
+.career-page .c-record b { color: var(--c-ink); font-weight: 800; }
+
+/* ---------------------------- 按钮 ---------------------------- */
+.career-page .c-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 14.5px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter .15s ease, transform .1s ease;
+}
+.career-page .c-btn:active { transform: translateY(1px); }
+.career-page .c-btn-primary {
+  background: linear-gradient(135deg, var(--c-brand), #FFB53F);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(245, 166, 35, .3);
+}
+.career-page .c-btn-primary:disabled,
+.career-page .c-btn-primary[aria-disabled="true"] {
+  background: #FFCE8A;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.career-page .c-btn-ghost {
+  background: var(--c-soft);
+  color: var(--c-brand-ink);
+}
+.career-page .c-btn-outline {
+  background: #fff;
+  color: var(--c-brand-ink);
+  border: 1px solid var(--c-brand);
+}
+.career-page .c-btn-block { display: flex; width: 100%; }
+.career-page .c-btn-lg { min-height: 50px; font-size: 16px; }
+.career-page .c-btn-sm { min-height: 36px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+
+/* ---------------------------- 排行榜 ---------------------------- */
+.career-page .c-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--c-line);
+  background: none;
+  text-align: left;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--c-ink);
+  cursor: pointer;
+}
+.career-page .c-rank-row:last-child { border-bottom: 0; }
+.career-page .c-rank-row .c-rank-ico { font-size: 19px; }
+.career-page .c-rank-row .c-rank-arrow { margin-left: auto; color: var(--c-muted); font-size: 17px; }
+
+/* ---------------------------- 赛季进程 ---------------------------- */
+.career-page .c-stage-card { padding: 16px 16px 14px; }
+.career-page .c-stage-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.career-page .c-stage-name { font-size: 19px; font-weight: 900; color: var(--c-ink); }
+.career-page .c-stage-rec { font-size: 15px; font-weight: 800; color: var(--c-brand); }
+.career-page .c-stage-day { font-size: 12.5px; color: var(--c-muted); margin-bottom: 6px; }
+.career-page .c-stage-rules {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--c-muted);
+  background: #FAF8F5;
+  border-radius: 9px;
+  padding: 8px 10px;
+  margin-top: 8px;
+}
+
+/* Tab（赛程 / 积分榜） */
+.career-page .c-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--c-line);
+  margin-bottom: 12px;
+}
+.career-page .c-tab {
+  flex: 1 1 0;
+  min-height: 42px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #8B8378;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.career-page .c-tab.is-active {
+  background: var(--c-soft);
+  color: var(--c-brand-ink);
+  box-shadow: inset 0 0 0 1px var(--c-soft-2);
+}
+
+/* 比赛日横滑 */
+.career-page .c-day-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.career-page .c-day-scroll::-webkit-scrollbar { display: none; }
+.career-page .c-day {
+  flex: 0 0 auto;
+  min-width: 64px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--c-line);
+  background: #fff;
+  color: #6F6559;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+.career-page .c-day.is-active {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(245, 166, 35, .3);
+}
+.career-page .c-day .c-day-dot {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-brand);
+}
+.career-page .c-day.is-active .c-day-dot { background: #fff; }
+
+/* 比赛卡 */
+.career-page .c-match {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 14px;
+  text-align: left;
+  cursor: default;
+}
+.career-page .c-match.is-mine {
+  border-color: var(--c-brand);
+  box-shadow: 0 4px 14px rgba(245, 166, 35, .16);
+}
+.career-page .c-match-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.career-page .c-match-bo {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  color: #B4A99A;
+}
+.career-page .c-mine-tag {
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: var(--c-soft);
+  color: var(--c-brand-ink);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.career-page .c-match-state {
+  margin-left: auto;
+  font-size: 11px;
+  color: #B4A99A;
+}
+.career-page .c-match-state.is-turn { color: var(--c-brand); font-weight: 800; }
+.career-page .c-match-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.career-page .c-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.career-page .c-side.is-right { justify-content: flex-end; }
+.career-page .c-side-logo {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #F2F1EF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #9C8F7E;
+}
+.career-page .c-side-logo img { width: 100%; height: 100%; object-fit: contain; }
+.career-page .c-side-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--c-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.career-page .c-side-name.is-win { color: var(--c-brand-ink); }
+.career-page .c-score {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--c-ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.career-page .c-score.is-pending { color: #C9BFB2; }
+
+/* 底部固定双按钮 */
+.career-page .c-bottom-bar {
+  position: sticky;
+  bottom: calc(var(--tabbar-h, 60px) + 6px);
+  z-index: 25;
+  display: flex;
+  gap: 10px;
+  padding: 8px 0 4px;
+  background: linear-gradient(180deg, rgba(246, 245, 243, 0), var(--c-bg) 40%);
+}
+.career-page .c-bottom-bar .c-btn { flex: 1 1 0; }
+
+/* 积分榜表格 */
+.career-page .c-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.career-page .c-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.career-page .c-table th {
+  padding: 8px 6px;
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--c-muted);
+  border-bottom: 1px solid var(--c-line);
+}
+.career-page .c-table td {
+  padding: 10px 6px;
+  border-bottom: 1px solid #F7F3EC;
+  color: var(--c-ink);
+}
+.career-page .c-table tr.is-mine td { background: var(--c-soft); font-weight: 800; }
+.career-page .c-table .c-td-team {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 130px;
+}
+.career-page .c-table .c-td-team img { width: 22px; height: 22px; object-fit: contain; }
+.career-page .c-group-title {
+  margin: 14px 0 6px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--c-brand-ink);
+}
+.career-page .c-state-chip {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #F2F1EF;
+  color: #8D867C;
+}
+.career-page .c-state-chip.is-adv { background: var(--c-soft); color: var(--c-brand-ink); }
+.career-page .c-state-chip.is-out { background: #FDECEA; color: #C0483A; }
+
+/* 双败对阵 */
+.career-page .c-bracket-side { margin-bottom: 16px; }
+.career-page .c-bracket-side > h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--c-brand-ink);
+}
+.career-page .c-bracket-round { margin-bottom: 10px; }
+.career-page .c-bracket-round > h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-muted);
+}
+.career-page .c-bracket-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: #FAF8F5;
+  border: 1px solid var(--c-line);
+  font-size: 12.5px;
+}
+.career-page .c-bracket-slot .c-bs-name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.career-page .c-bracket-slot .c-bs-name.is-win { font-weight: 800; color: var(--c-brand-ink); }
+.career-page .c-bracket-slot .c-bs-score { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* ---------------------------- 抽签 ---------------------------- */
+.career-page .c-draw-title {
+  margin: 18px 0 8px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--c-ink);
+}
+.career-page .c-draw-sub {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--c-ink);
+}
+.career-page .c-draw-sub b { color: var(--c-brand); font-size: 18px; }
+.career-page .c-draw-stage { text-align: center; padding: 20px 12px 16px; }
+.career-page .c-draw-count {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--c-soft);
+  color: var(--c-brand-ink);
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.career-page .c-draw-hero {
+  width: 132px;
+  margin: 0 auto 10px;
+  padding: 14px 8px 12px;
+  border-radius: 16px;
+  background: #FBF7F1;
+  border: 1px solid var(--c-line);
+}
+.career-page .c-draw-hero img { width: 62px; height: 62px; object-fit: contain; display: block; margin: 0 auto 8px; }
+.career-page .c-draw-hero .c-dh-name { font-size: 15px; font-weight: 800; color: var(--c-ink); }
+.career-page .c-draw-arrow { color: #C9BFB2; font-size: 18px; margin: 6px 0; }
+.career-page .c-draw-group {
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--c-brand);
+  letter-spacing: 1px;
+  margin: 6px 0 2px;
+}
+.career-page .c-group-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.career-page .c-group-col {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--c-line);
+  padding: 10px 8px;
+}
+.career-page .c-group-col > h4 {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--c-brand);
+  letter-spacing: .5px;
+}
+.career-page .c-group-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 7px;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  background: #F7F6F4;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-ink);
+  min-height: 34px;
+}
+.career-page .c-group-item.is-me {
+  background: var(--c-soft);
+  box-shadow: inset 0 0 0 1px var(--c-brand);
+  color: var(--c-brand-ink);
+}
+.career-page .c-group-item.is-empty {
+  background: transparent;
+  border: 1px dashed #E3DACB;
+  color: #C4B9A9;
+  font-weight: 500;
+  justify-content: center;
+}
+.career-page .c-group-item img { width: 20px; height: 20px; object-fit: contain; }
+.career-page .c-group-item .c-gi-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.career-page .c-draw-skip {
+  display: block;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 12px;
+  border: 0;
+  background: none;
+  color: var(--c-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---------------------------- 战队选择 ---------------------------- */
+.career-page .c-event-head { margin-bottom: 14px; }
+.career-page .c-event-name { margin: 0 0 6px; font-size: 24px; font-weight: 900; color: var(--c-ink); }
+.career-page .c-event-desc { margin: 0; font-size: 13px; color: var(--c-muted); }
+.career-page .c-tipbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  font-size: 13px;
+  color: var(--c-ink);
+  margin-bottom: 14px;
+}
+.career-page .c-tipbar b { color: var(--c-brand); }
+.career-page .c-chip-gray {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #F2F1EF;
+  color: #8D867C;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.career-page .c-team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.career-page .c-team-card {
+  position: relative;
+  padding: 14px 8px 10px;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+.career-page .c-team-card.is-active {
+  border-color: var(--c-brand);
+  box-shadow: 0 4px 14px rgba(245, 166, 35, .18);
+  background: #FFFBF4;
+}
+.career-page .c-team-card img { width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto 8px; }
+.career-page .c-team-card .c-tc-name { font-size: 14px; font-weight: 800; color: var(--c-ink); }
+.career-page .c-team-card .c-tc-sub { margin-top: 3px; font-size: 11px; color: var(--c-muted); }
+.career-page .c-team-card .c-tc-badge {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  min-width: 26px;
+  padding: 2px 6px;
+  border-radius: 999px 999px 999px 4px;
+  background: var(--c-brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* 自建战队表单 */
+.career-page .c-form-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 0 8px;
+  border-bottom: 1px solid var(--c-line);
+}
+.career-page .c-form-label { font-size: 13px; color: var(--c-muted); }
+.career-page .c-form-count { font-size: 12px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.career-page .c-input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 6px 0 10px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--c-ink);
+  border-bottom: 1px solid var(--c-line);
+}
+.career-page .c-input::placeholder { color: #D6CDBF; }
+.career-page .c-form-static {
+  padding: 10px 0 12px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-ink);
+  border-bottom: 1px solid var(--c-line);
+}
+.career-page .c-rules-list { margin: 0; padding: 0; list-style: none; }
+.career-page .c-rules-list li {
+  position: relative;
+  padding: 6px 0 6px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #5B544B;
+}
+.career-page .c-rules-list li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 13px;
+  width: 5px;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--c-brand);
+}
+
+/* 选择赛事弹窗 */
+.career-page .c-modal-mask {
+  position: fixed;
+  inset: 0; top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(31, 27, 22, .45);
+}
+.career-page .c-modal-mask[hidden] { display: none; }
+.career-page .c-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 82vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 18px 44px rgba(31, 27, 22, .28);
+}
+.career-page .c-modal h2 { margin: 0 0 14px; font-size: 19px; font-weight: 900; color: var(--c-ink); }
+.career-page .c-modal-label {
+  margin: 12px 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #B4A99A;
+}
+.career-page .c-event-opt {
+  display: block;
+  width: 100%;
+  margin-bottom: 9px;
+  padding: 13px 14px;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+}
+.career-page .c-event-opt.is-active {
+  border-color: var(--c-brand);
+  background: #FFFBF4;
+  box-shadow: inset 0 0 0 1px var(--c-brand);
+}
+.career-page .c-event-opt .c-eo-name { font-size: 16px; font-weight: 800; color: var(--c-ink); }
+.career-page .c-event-opt .c-eo-sub { margin-top: 3px; font-size: 12px; color: var(--c-muted); }
+.career-page .c-event-opt .c-eo-check {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c-brand);
+  color: #fff;
+  font-size: 12px;
+  line-height: 22px;
+  text-align: center;
+  display: none;
+}
+.career-page .c-event-opt.is-active .c-eo-check { display: block; }
+.career-page .c-modal-more { margin: 4px 0 8px; font-size: 13px; font-weight: 700; color: #C4B9A9; }
+.career-page .c-modal-foot { display: flex; gap: 10px; margin-top: 14px; }
+.career-page .c-modal-foot .c-btn { flex: 1 1 0; }
+.career-page .c-modal-foot .c-btn-cancel {
+  background: #F4F2EF;
+  color: #6F6559;
+}
+
+/* ---------------------------- 空态 ---------------------------- */
+.career-page .c-empty {
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--c-muted);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.career-page .c-skel {
+  height: 74px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #F4F1EC 25%, #FAF8F5 37%, #F4F1EC 63%);
+  background-size: 400% 100%;
+  animation: cSkel 1.4s ease infinite;
+  margin-bottom: 10px;
+}
+@keyframes cSkel {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* 荣誉墙 / 排行榜弹层 */
+.career-page .c-list-plain { margin: 0; padding: 0; list-style: none; }
+.career-page .c-list-plain li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #F7F3EC;
+  font-size: 13.5px;
+}
+.career-page .c-list-plain li:last-child { border-bottom: 0; }
+.career-page .c-list-plain .c-lp-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #F2F1EF;
+  color: #8D867C;
+  font-size: 11.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.career-page .c-list-plain .c-lp-rank.is-top { background: var(--c-brand); color: #fff; }
+.career-page .c-list-plain .c-lp-name { flex: 1 1 0; min-width: 0; font-weight: 700; color: var(--c-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.career-page .c-list-plain .c-lp-val { color: var(--c-brand-ink); font-weight: 800; font-variant-numeric: tabular-nums; }
+.career-page .c-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #A79B8B;
+}
+
+@media (min-width: 720px) {
+  .career-page { max-width: 720px; margin: 0 auto; }
+  .career-page .c-team-grid { grid-template-columns: repeat(3, 1fr); }
+  .career-page .c-stat-num { font-size: 24px; }
+}
+
+/* ============================================================
+   v6：存档分类筛选 / 存档操作（重命名、删除）
+   ============================================================ */
+.career-page .c-filter {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.career-page .c-filter::-webkit-scrollbar { display: none; }
+
+.career-page .c-filter-btn {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--brand-ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.career-page .c-filter-btn.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 140, 66, .28);
+}
+
+.career-page .c-save-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.career-page .c-save-actions .c-btn-ghost {
+  color: var(--brand-ink);
+  border-color: var(--line);
+  background: var(--brand-soft);
+}
+.career-page .c-save-actions .c-btn-ghost.is-danger {
+  color: var(--red);
+  border-color: rgba(224, 92, 75, .35);
+  background: rgba(224, 92, 75, .08);
+}
+
+/* ---------- 年度积分（v21：年度赛程包全程显示） ---------- */
+.career-page .c-annual-card {
+  margin: 10px 0 12px;
+  padding: 12px 12px 8px;
+}
+.career-page .c-annual-card[hidden] { display: none; }
+.career-page .c-annual-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.career-page .c-annual-head strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--c-brand-ink);
+}
+.career-page .c-annual-tip {
+  font-size: 11.5px;
+  color: var(--c-muted);
+}
+.career-page .c-annual-body {
+  max-height: 320px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.career-page .c-table-annual { min-width: 420px; }
+.career-page .c-table-annual .c-td-total {
+  font-weight: 800;
+  color: var(--c-brand-ink);
+}
+@media (max-width: 560px) {
+  .career-page .c-annual-card { padding: 10px 8px 6px; }
+  .career-page .c-annual-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .career-page .c-annual-body { max-height: 46vh; }
+  /* 手机上让 6 列直接放下：缩小内距、队名可省略，不依赖横向滚动 */
+  .career-page .c-table-annual {
+    font-size: 11.5px;
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+  }
+  .career-page .c-table-annual th,
+  .career-page .c-table-annual td { padding: 8px 3px; }
+  /* 表头允许折行：「2026 春季赛」在 51px 列宽下分两行更清楚 */
+  .career-page .c-table-annual th {
+    font-size: 10.5px;
+    line-height: 1.25;
+    font-weight: 700;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .career-page .c-table-annual th:nth-child(1),
+  .career-page .c-table-annual td:nth-child(1) { width: 22px; }
+  .career-page .c-table-annual th:nth-child(2),
+  .career-page .c-table-annual td:nth-child(2) { width: 34%; }
+  .career-page .c-table-annual .c-td-team {
+    min-width: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ---------- v26：年度积分改成第四个 Tab ---------- */
+.career-page .c-tabs { flex-wrap: nowrap; }
+.career-page .c-tab {
+  padding: 0 8px;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+.career-page .c-tab[hidden] { display: none; }
+.career-page #paneAnnual .c-annual-card {
+  margin: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 4px 2px 0;
+}
+.career-page #paneAnnual .c-annual-head { margin-bottom: 6px; }
+/* 年度积分表可能很长，底部留出给「模拟 / 推进」按钮的高度，别让表格钻到按钮下面 */
+.career-page #paneAnnual { padding-bottom: 76px; }
+@media (max-width: 560px) {
+  .career-page .c-tab {
+    padding: 0 4px;
+    font-size: 13px;
+  }
+  .career-page #paneAnnual .c-annual-body { max-height: none; }
+  .career-page #paneAnnual { padding-bottom: 96px; }
+}
+
+
+/* ================= v28：赛程闸门卡片 ================= */
+.c-gate-card {
+  margin: 0 0 12px;
+  padding: 14px 16px 16px;
+  border: 1px solid #FFD9B0;
+  background: linear-gradient(180deg, #FFF8EE 0%, #FFFFFF 100%);
+  box-shadow: 0 6px 18px rgba(255, 140, 66, .10);
+}
+.c-gate-head { display: flex; align-items: flex-start; gap: 10px; }
+.c-gate-icon { font-size: 22px; line-height: 1.1; flex: none; }
+.c-gate-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.c-gate-titles strong { font-size: 16px; color: #6B4A1E; letter-spacing: .3px; }
+.c-gate-titles span { font-size: 13px; line-height: 1.55; color: #8A6A44; }
+.c-gate-teams {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: 10px 0 12px;
+}
+.c-gate-team {
+  font-size: 12px; line-height: 1;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #FFF1DE;
+  color: #8A5A16;
+  border: 1px solid #FFE0BC;
+  white-space: nowrap;
+}
+.c-gate-team.is-more { background: transparent; border-style: dashed; color: #B08A5A; }
+#btnGate { width: 100%; }
+@media (max-width: 560px) {
+  .c-gate-card { padding: 12px 13px 14px; }
+  .c-gate-titles strong { font-size: 15px; }
+  .c-gate-titles span { font-size: 12.5px; }
+}
+
+/* v29：阶段卡上方显示当前所属赛事（官方名称） */
+.c-stage-series {
+  margin: 2px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #A9743F;
+  letter-spacing: .2px;
+}
+
+/* ---------------------------------------------------------------------
+ * v31（用户 m18614）：年总突围赛「选对手」页面
+ * ------------------------------------------------------------------- */
+.bo-team-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+
+.bo-team-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid #F0DCC4;
+  background: #FFF9F2;
+  color: #5B4630;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: default;
+  font-family: inherit;
+}
+
+.bo-team-chip.is-picker { background: #FFF3E2; border-color: #F3C892; }
+.bo-team-chip.is-current {
+  border-color: #FF8C42;
+  box-shadow: 0 0 0 2px rgba(255, 140, 66, .18);
+}
+.bo-team-chip.is-used { opacity: .42; text-decoration: line-through; }
+.bo-team-chip.is-pickable {
+  cursor: pointer;
+  border-color: #FF8C42;
+  background: #FFE8D2;
+  animation: boPulse 1.6s ease-in-out infinite;
+}
+.bo-team-chip.is-mine .bo-chip-name { color: #C25A12; }
+.bo-team-chip:disabled { pointer-events: none; }
+
+.bo-chip-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #C98A45;
+  background: #FFF1DE;
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+.bo-chip-mine {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: #FF8C42;
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+.bo-pairs { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+
+.bo-pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #FFF9F2;
+  border: 1px solid #F3E3CF;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5B4630;
+}
+
+.bo-pair-no { font-size: 11px; color: #C98A45; font-weight: 700; min-width: 42px; }
+.bo-pair-team { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bo-pair-team.is-mine { color: #C25A12; }
+.bo-pair-vs { font-size: 11px; color: #C4B9A9; font-weight: 700; }
+
+@keyframes boPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 140, 66, .28); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 140, 66, .12); }
+}
+
+@media (max-width: 560px) {
+  .bo-team-chip { padding: 7px 10px; font-size: 13px; }
+  .bo-pair { font-size: 13px; }
+}
+
+/* v31：选对手页面底部留白，避免「开始突围赛」按钮被底部导航压住 */
+#breakoutApp { padding-bottom: 108px; }
+#breakoutApp #btnBoStart { margin-top: 4px; }
+@media (max-width: 560px) {
+  #breakoutApp { padding-bottom: 132px; }
+}
+
+/* v39：存档区移到页面最后，加一个和卡片标题对齐的小标题 */
+.c-sec-title {
+  margin: 4px 2px -4px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #A15B1E;
+  letter-spacing: .4px;
+}
+.c-sec-title[hidden] { display: none; }
+
+/* ------------------------------------------------------------
+   v51：「我的」页赛事统计改成四类（春季赛 / 挑战者杯 / 夏季赛 / 年度总决赛）
+   ------------------------------------------------------------ */
+.career-page .c-stat-head-global {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 10px;
+}
+.career-page .c-stat-row {
+  padding: 10px 12px;
+  border: 1px solid #F3E2CE;
+  border-radius: 12px;
+  background: #FFFBF4;
+  margin-bottom: 8px !important;
+}
+.career-page .c-stat-row:last-child { margin-bottom: 0 !important; }
+.career-page .c-stat-row .c-stat-head { margin-bottom: 6px; }
+.career-page .c-stat-row .c-stat-head strong { font-size: 14px; }
+.career-page .c-stat-sub { font-size: 11px; color: #A98966; }
+.career-page .c-stat-row .c-stat-grid { margin-top: 0; }
+.career-page .c-stat-row .c-stat-num { font-size: 20px; }
+.career-page .c-stat-row .c-stat-label { font-size: 11px; }
+@media (max-width: 560px) {
+  .career-page .c-stat-row { padding: 9px 10px; }
+  .career-page .c-stat-row .c-stat-num { font-size: 18px; }
+}

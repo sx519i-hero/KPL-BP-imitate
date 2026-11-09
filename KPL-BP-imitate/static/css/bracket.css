@@ -1,0 +1,320 @@
+/*!
+ * bracket.css —— 淘汰赛对阵流程图（v15 重绘）
+ * 参照 KPL 官方赛程图：暖色米白底、两队上下排列的卡片、橙色折线连接，
+ * 胜者组在上、败者组在下、总决赛在右。
+ */
+
+.bk-host,
+#bracketHost {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0 8px;
+}
+
+.bk-canvas {
+  position: relative;
+  margin: 0 auto;
+}
+
+/* 连线层：垫在卡片下面 */
+.bk-links {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.bk-link {
+  fill: none;
+  stroke: #f2b179;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bk-link.is-lose {
+  stroke: #e8c9a8;
+  stroke-dasharray: 5 4;
+}
+
+.bk-link.is-loser {
+  stroke: #d9b48c;
+}
+
+.bk-link.is-final {
+  stroke: #F08A3C;
+  stroke-width: 2.4;
+}
+
+/* 竖排区块标签：胜者组 / 败者组 */
+.bk-sec {
+  position: absolute;
+  left: 0;
+  width: 26px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bk-sec > span {
+  writing-mode: vertical-rl;
+  letter-spacing: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #C8763A;
+  background: rgba(255, 244, 231, .92);
+  border-radius: 8px;
+  padding: 8px 2px;
+}
+
+.bk-sec.is-loser > span {
+  color: #8C7A66;
+  background: rgba(246, 240, 232, .92);
+}
+
+/* 轮次名 */
+.bk-round {
+  position: absolute;
+  z-index: 2;
+  font-size: 11px;
+  color: #8a7a68;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* 总决赛标题 */
+.bk-final {
+  position: absolute;
+  z-index: 3;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #E07A2C;
+}
+
+.bk-final::before,
+.bk-final::after {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 1px;
+  margin: 0 6px 4px;
+  background: linear-gradient(90deg, transparent, #efc79c);
+  vertical-align: middle;
+}
+
+.bk-final::after {
+  background: linear-gradient(90deg, #efc79c, transparent);
+}
+
+/* 卡片 */
+.bk-cell {
+  position: absolute;
+  z-index: 1;
+  width: 186px;
+  height: 62px;   /* 与 bracket.js 的 CH 保持一致，避免卡片互相压住 */
+}
+
+.bk-match {
+  height: 62px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: #FFFDF9;
+  border: 1px solid #F0DCC4;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(180, 120, 60, .10);
+  overflow: hidden;
+  transition: box-shadow .18s ease, border-color .18s ease;
+}
+
+.bk-match.has-mine {
+  border-color: #FFB347;
+  box-shadow: 0 3px 10px rgba(255, 140, 66, .22);
+}
+
+.bk-match.is-done {
+  background: #FFFCF7;
+}
+
+.bk-tag {
+  flex: 0 0 auto;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: #b39a80;
+  background: rgba(255, 246, 235, .72);
+  border-bottom: 1px solid #F6E7D5;
+  letter-spacing: .5px;
+}
+
+.bk-state {
+  color: #c2a98f;
+}
+
+/* 队伍行 */
+.bk-row {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  font-size: 13px;
+  color: #4a4238;
+}
+
+.bk-row + .bk-row {
+  border-top: 1px solid #F8EEE3;
+}
+
+.bk-row.is-win {
+  background: linear-gradient(90deg, rgba(255, 214, 170, .55), rgba(255, 240, 226, .15));
+  color: #2f2a22;
+  font-weight: 700;
+}
+
+.bk-row.is-win .bk-name {
+  color: #C4601F;
+}
+
+.bk-row.is-mine .bk-name::after {
+  content: "你";
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: #FFE3C8;
+  color: #C4601F;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bk-logo {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #F1E2D0;
+}
+
+.bk-logo-fb,
+.bk-logo-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #C8763A;
+  background: #FFF2E2;
+}
+
+.bk-logo-empty {
+  border-style: dashed;
+}
+
+.bk-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bk-score {
+  flex: 0 0 auto;
+  min-width: 14px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #E07A2C;
+}
+
+.bk-row:not(.is-win) .bk-score {
+  color: #a89a8a;
+  font-weight: 600;
+}
+
+.bk-empty {
+  padding: 26px 12px;
+  text-align: center;
+  color: #a99a89;
+  font-size: 13px;
+}
+
+/* 窄屏：收窄卡片，允许横向滚动 */
+@media (max-width: 560px) {
+  /* 卡片宽度由 bracket.js 的 CW 决定，这里不再覆盖，避免与坐标不一致 */
+  .bk-row { font-size: 12px; padding: 0 6px; gap: 6px; }
+  .bk-logo { width: 18px; height: 18px; }
+}
+
+/* ---------------- v27：年总突围赛三列流程图（擂台赛 → 突围赛 → 淘汰赛） ----------------
+ * 后两列是「展示卡」：只按来源回填队名，不生成比赛。
+ * 宽度仍然由 bracket.js 的 CW 决定，这里只做外观，绝不改 width/left/top。
+ */
+.bk-match.is-ph {
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: linear-gradient(180deg, #FFF7EA 0%, #FFEFD6 100%);
+  border: 1px dashed #E9A85C;
+  box-shadow: none;
+}
+
+.bk-match.is-ph.is-filled {
+  border-style: solid;
+  background: linear-gradient(180deg, #FFF3DE 0%, #FFE6C2 100%);
+}
+
+.bk-match.is-ph .bk-ph-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bk-match.is-ph .bk-ph-row .bk-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6B4A1E;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bk-match.is-ph .bk-ph-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #C98A45;
+  text-align: center;
+}
+
+/* 「淘汰赛」名额卡是流程图最后一格，用更醒目的金色实底 */
+.bk-match.is-ph-slot {
+  background: linear-gradient(180deg, #FFE9C4 0%, #FFD79A 100%);
+  border: 1px solid #E0A052;
+}
+
+.bk-match.is-ph-slot.is-filled .bk-ph-label {
+  color: #8A5A16;
+}
+
+@media (max-width: 560px) {
+  .bk-match.is-ph .bk-ph-row .bk-name { font-size: 12px; }
+  .bk-match.is-ph .bk-ph-label { font-size: 11px; }
+}

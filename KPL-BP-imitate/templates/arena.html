@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}BP 对战 · KPL{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/arena.css">
+{% endblock %}
+
+{% block content %}
+<div class="page arena-page" id="arenaPage">
+
+  <!-- ===== 顶部信息条 ===== -->
+  <header class="arena-top card" id="arenaTop">
+    <div class="top-row">
+      <a class="link-back" href="/">&lsaquo; 返回首页</a>
+      <span class="season" id="seasonName">加载中…</span>
+      <a class="link-reset" id="linkReset" href="/">重新选择</a>
+    </div>
+
+    <div class="vs-row">
+      <div class="vs-team" data-side="blue">
+        <span class="vs-logo" id="logoBlue" aria-hidden="true"></span>
+        <span class="vs-meta">
+          <span class="vs-name-wrap">
+            <span class="vs-name" id="nameBlue">—</span>
+            <span class="you-tag" id="youBlue" hidden>你</span>
+          </span>
+          <span class="tag tag-blue">蓝方</span>
+        </span>
+      </div>
+
+      <div class="vs-center">
+        <span class="bo-label" id="boLabel">BO —</span>
+        <span class="bo-score" id="boScore">— : —</span>
+        <span class="bo-sub" id="boSub"></span>
+      </div>
+
+      <div class="vs-team" data-side="red">
+        <span class="vs-meta">
+          <span class="vs-name-wrap">
+            <span class="vs-name" id="nameRed">—</span>
+            <span class="you-tag" id="youRed" hidden>你</span>
+          </span>
+          <span class="tag tag-red">红方</span>
+        </span>
+        <span class="vs-logo" id="logoRed" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <!-- 首局默认分配阵营 / 单局模式的说明小字（契约 v2 §3.4-2） -->
+    <p class="side-note" id="sideNote" hidden></p>
+  </header>
+
+  <!-- ===== 决胜局提示 ===== -->
+  <div class="tiebreak-banner" id="tiebreakBanner" hidden>
+    <span class="tb-ico" aria-hidden="true">&#9889;</span>
+    <span class="tb-text"><strong>巅峰对决</strong> · 本局无 Ban，双方盲选；选完按 对抗路 → 游走 逐路公布</span>
+  </div>
+
+  <!-- ===== 中央 BP 面板 ===== -->
+  <section class="bp-panel card" id="bpPanel" aria-label="BP 面板">
+
+    <div class="bp-side" data-side="blue">
+      <div class="bp-side-head">
+        <span class="side-pill side-blue">蓝方</span>
+        <span class="side-team" id="bpTeamBlue">—</span>
+        <span class="side-count" id="countBlue"></span>
+      </div>
+      <div class="slot-row ban-row" id="banBlue"></div>
+      <div class="slot-row pick-row" id="pickBlue"></div>
+    </div>
+
+    <div class="turn-band" id="turnBand" data-side="">
+      <div class="turn-main">
+        <span class="turn-dot" aria-hidden="true"></span>
+        <span class="turn-text" id="turnText">加载中…</span>
+      </div>
+      <div class="turn-prog">
+        <div class="prog" aria-hidden="true"><i id="stepBar"></i></div>
+        <span class="prog-text" id="stepText">—</span>
+      </div>
+    </div>
+
+    <div class="bp-side" data-side="red">
+      <div class="bp-side-head">
+        <span class="side-pill side-red">红方</span>
+        <span class="side-team" id="bpTeamRed">—</span>
+        <span class="side-count" id="countRed"></span>
+      </div>
+      <div class="slot-row ban-row" id="banRed"></div>
+      <div class="slot-row pick-row" id="pickRed"></div>
+    </div>
+
+  </section>
+
+  <!-- ===== 巅峰对决 · 分路公布 ===== -->
+  <section class="tb-reveal card" id="tbReveal" hidden></section>
+
+  <!-- ===== 预选确认条（契约 v3 §6：点英雄只是预选，必须确认才锁定） ===== -->
+  <section class="confirm-bar card" id="confirmBar" aria-live="polite" hidden>
+    <div class="cb-hero">
+      <span class="cb-avatar" id="cbAvatar" aria-hidden="true"></span>
+      <span class="cb-meta">
+        <strong class="cb-name" id="cbName">未选择英雄</strong>
+        <span class="cb-hint" id="cbHint">点击下方英雄头像预选</span>
+      </span>
+    </div>
+    <span class="cb-timer" id="cbTimer" hidden>30s</span>
+    <div class="cb-actions">
+      <button class="btn btn-ghost btn-sm" id="btnCancelPick" type="button" disabled>取消预选</button>
+      <button class="btn btn-primary btn-sm" id="btnConfirmPick" type="button" disabled>确认选择</button>
+    </div>
+  </section>
+
+  <!-- ===== 底部英雄网格 ===== -->
+  <section class="hero-dock card" id="heroDock" aria-label="可选英雄">
+    <div class="dock-head">
+      <div class="lane-chips" id="laneChips" role="group" aria-label="按位置筛选"></div>
+      <div class="dock-tools">
+        <span class="dock-count" id="dockCount"></span>
+        <input class="hero-search" id="heroSearch" type="search" placeholder="搜索英雄"
+               autocomplete="off" spellcheck="false" aria-label="按名字搜索英雄">
+      </div>
+    </div>
+    <div class="hero-grid" id="heroGrid"></div>
+    <div class="empty grid-empty" id="gridEmpty" hidden></div>
+  </section>
+
+  <div class="fatal card" id="fatalBox" hidden></div>
+</div>
+
+<!-- ===== 阵容评分浮层 ===== -->
+<button class="fab fab-auto" id="autoBpFab" type="button" aria-label="一键完成本次 BP">
+  <span class="fab-ico" aria-hidden="true">&#9889;</span><span>一键 BP</span>
+</button>
+<button class="fab" id="scoreFab" type="button" aria-label="查看阵容评分">
+  <span class="fab-ico" aria-hidden="true">&#9733;</span><span>阵容评分</span>
+</button>
+
+<div class="sheet-mask" id="scoreMask" hidden></div>
+<aside class="sheet" id="scoreSheet" role="dialog" aria-modal="true" aria-labelledby="scoreTitle" hidden>
+  <div class="sheet-head">
+    <strong class="sheet-title" id="scoreTitle">阵容评分</strong>
+    <button class="sheet-x" id="scoreClose" type="button" aria-label="关闭">&#10005;</button>
+  </div>
+  <div class="sheet-body" id="scoreBody"></div>
+</aside>
+
+<!-- ===== 结算弹窗 ===== -->
+<div class="modal-mask" id="resultMask" hidden>
+  <div class="modal card" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+    <div class="modal-head">
+      <h2 class="result-title" id="resultTitle">本局结束</h2>
+      <p class="result-sub" id="resultSub"></p>
+    </div>
+    <div class="modal-body" id="resultBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" id="btnAgain" type="button">再来一局</button>
+      <a class="btn" href="/" id="btnBackHome">返回首页</a>
+      <a class="btn btn-primary" href="/career" id="btnBackSeason" hidden>返回赛季 ›</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== v50：巅峰对决 · 分路公布（第一个结算页） ===== -->
+<div class="modal-mask" id="tbRevealMask" hidden>
+  <div class="modal card" id="tbRevealModal" role="dialog" aria-modal="true" aria-labelledby="tbRevealTitle">
+    <div class="modal-head">
+      <h2 class="result-title" id="tbRevealTitle">巅峰对决 · 阵容公布</h2>
+      <p class="result-sub" id="tbRevealSub">双方盲选已完成，按对抗路 → 打野 → 中路 → 发育路 → 游走 依次公布</p>
+    </div>
+    <div class="modal-body">
+      <div class="tb-reveal-stage" id="tbRevealStage"></div>
+      <div class="tb-reveal-log" id="tbRevealLog"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" id="btnTbRevealNext" type="button" hidden>下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 败方选边面板（契约 v2 §3.4-1，遮住 BP 区） ===== -->
+<div class="modal-mask side-mask" id="sideChoiceMask" hidden>
+  <div class="modal card side-modal" id="sideChoiceModal" role="dialog" aria-modal="true"
+       aria-labelledby="sideChoiceTitle" aria-describedby="sideChoiceSub">
+    <div class="modal-head side-head">
+      <span class="side-kicker" id="sideChoiceKicker">上局败方选边</span>
+      <h2 class="result-title side-title" id="sideChoiceTitle">本局由 — 战队（上局败方）选边</h2>
+      <p class="result-sub" id="sideChoiceSub"></p>
+    </div>
+    <div class="modal-body side-body">
+      <div class="side-hist" id="sideChoiceHist"></div>
+      <p class="side-tip">选边只决定阵营归属，BP 顺序（谁先 Ban、谁先 Pick）不变。</p>
+    </div>
+    <div class="modal-foot side-foot">
+      <button class="btn btn-choice is-blue" id="btnPickBlue" type="button" data-side="blue">
+        <span class="btn-choice-dot" aria-hidden="true"></span>选择蓝色方
+      </button>
+      <button class="btn btn-choice is-red" id="btnPickRed" type="button" data-side="red">
+        <span class="btn-choice-dot" aria-hidden="true"></span>选择红色方
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AI 思考遮罩 ===== -->
+<div class="ai-mask" id="aiMask" hidden>
+  <div class="ai-card">
+    <div class="ai-spinner" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="ai-text" id="aiText">AI 教练思考中…</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/bp.js"></script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}大模型 AI 对战 · KPL 模拟 BP 教练{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v4.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="v4-page" data-page="llm">
+
+  <div class="v4-topbar">
+    <a class="v4-back" href="/" aria-label="返回首页">‹</a>
+    <h1 class="v4-topbar-title">大模型 AI 对战</h1>
+    <span class="v4-topbar-sub" id="llmBadge">检测中…</span>
+  </div>
+
+  <!-- 状态条 -->
+  <section class="card v4-card v4-status-card" id="statusCard">
+    <div class="v4-status-row">
+      <span class="v4-status-dot" id="statusDot"></span>
+      <div class="v4-status-text">
+        <b id="statusTitle">正在检测大模型配置…</b>
+        <span id="statusDesc">读取本地配置</span>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="/settings">去设置</a>
+    </div>
+    <p class="v4-note">
+      原版内置 AI 完全保留：下面两个模式都可以随时切回「内置 AI」。
+      大模型返回异常（服务繁忙 / 超时 / Token 错误 / 返回不是 JSON）会自动回退内置 AI，对局不会中断。
+    </p>
+  </section>
+
+  <!-- 玩法 -->
+  <section class="card v4-card">
+    <h2 class="v4-card-title">选择玩法</h2>
+    <div class="v4-seg" id="modeSeg" role="tablist">
+      <button type="button" class="v4-seg-btn is-active" data-mode="single" role="tab">单局 PK</button>
+      <button type="button" class="v4-seg-btn" data-mode="league" role="tab">联赛战队 PK</button>
+    </div>
+  </section>
+
+  <!-- 单局 -->
+  <section class="card v4-card" id="singleCard">
+    <h2 class="v4-card-title">单局 PK：你 vs 大模型</h2>
+    <label class="v4-field">
+      <span class="v4-label">赛季数据</span>
+      <select class="v4-input" id="smLeague"></select>
+    </label>
+    <p class="v4-hint">你执一边，另一边固定是「DeepSeek」——不用再挑两个 KPL 战队，避免战队胜率影响胜负。</p>
+    <div class="v4-grid2">
+      <label class="v4-field">
+        <span class="v4-label">赛制</span>
+        <select class="v4-input" id="smBo">
+          <option value="1">BO1</option>
+          <option value="3">BO3</option>
+          <option value="5">BO5</option>
+          <option value="7" selected>BO7（3:3 进第 7 局巅峰对决）</option>
+          <option value="9">BO9（4:4 进第 9 局巅峰对决）</option>
+        </select>
+      </label>
+      <label class="v4-field">
+        <span class="v4-label">你执哪边</span>
+        <select class="v4-input" id="smSide">
+          <option value="blue" selected>蓝方</option>
+          <option value="red">红方</option>
+        </select>
+      </label>
+    </div>
+    <label class="v4-field">
+      <span class="v4-label">对手 AI 来源</span>
+      <select class="v4-input" id="smEngine">
+        <option value="llm" selected>外部大模型（DeepSeek 等）</option>
+        <option value="builtin">内置 AI（不消耗 token）</option>
+      </select>
+    </label>
+    <label class="v4-field">
+      <span class="v4-label">内置 AI 难度（大模型失败时的兜底也用它）</span>
+      <select class="v4-input" id="smDiff">
+        <option value="rookie">入门</option>
+        <option value="pro" selected>职业</option>
+        <option value="boss">魔王</option>
+      </select>
+    </label>
+    <!-- 按钮样式/布局与「好友 PK」面板统一（.v4-row-btns + .btn-sm） -->
+    <div class="v4-row-btns">
+      <button type="button" class="btn btn-primary btn-sm" id="btnStartSingle">开始单局</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btnBackHomeSingle">返回首页</button>
+    </div>
+    <p class="v4-status" id="singleStatus"></p>
+  </section>
+
+  <!-- 联赛 -->
+  <section class="card v4-card" id="leagueCard" hidden>
+    <h2 class="v4-card-title">大模型联赛：你 1 队 · DeepSeek 1 队 · 其余内置 AI</h2>
+    <label class="v4-field">
+      <span class="v4-label">赛事模板（官方赛制）</span>
+      <select class="v4-input" id="lgTemplate"></select>
+      <span class="v4-label">赛事届次（哪一年哪一届）</span>
+      <select class="v4-input" id="lgEdition"></select>
+    </label>
+    <label class="v4-field">
+      <span class="v4-label">你的战队名（必填 · 自拟，不能用 KPL 战队名）</span>
+      <input class="v4-input" id="lgTeamName" type="text" maxlength="5" placeholder="例如：我的战队（最多 5 个字）">
+      <span class="v4-label">存档名称（自动存档，可自定义，留空自动命名）</span>
+      <input class="v4-input" id="lgSaveName" type="text" maxlength="20" placeholder="例如：我的大模型联赛第一季">
+    </label>
+    <p class="v4-hint">你和大模型都<b>不能用官方 KPL 战队</b>：你的队名自己起，大模型固定叫 <b>DeepSeek</b>，其余队伍交给内置 AI。</p>
+    <p class="v4-note">
+      三类主体严格区分：<b>你</b>手操自己所在战队、<b>DeepSeek</b>只执教所选的那 1 支战队、
+      其余全部战队交给游戏内置 AI 自动模拟。赛制与年总模式完全一致（SAB 三阶段 / 卡位赛 / 季后赛 / 年度积分）。
+    </p>
+    <div class="v4-row-btns">
+      <button type="button" class="btn btn-primary btn-sm" id="btnStartLeague">开启大模型联赛</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btnBackHomeLeague">返回首页</button>
+    </div>
+    <p class="v4-status" id="leagueStatus"></p>
+
+    <!-- v41：继续上次的大模型联赛（只列 mode=llm 的存档，不混入单机/联机存档） -->
+    <div class="v4-divider"></div>
+    <h3 class="v4-subtitle">继续上次的大模型联赛 <span class="v4-count" id="llmSavesCount"></span></h3>
+    <p class="v4-hint">只列出「大模型对战」自己的存档；点「继续执教」直接回到赛季页接着打。</p>
+    <ul class="v4-saves" id="llmSaveList"></ul>
+    <div class="v4-row-btns">
+      <button type="button" class="btn btn-ghost btn-sm" id="btnRefreshLlmSaves">刷新存档列表</button>
+    </div>
+  </section>
+
+  <section class="card v4-card">
+    <h2 class="v4-card-title">最近的大模型决策</h2>
+    <pre class="v4-log" id="llmLog">暂无（打一局就会出现在这里）</pre>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/llm.js') }}"></script>
+{% endblock %}
