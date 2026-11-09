@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}我的 · KPL 模拟 BP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/data.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/career.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="career-page" id="careerApp" data-page="career">
+
+  <div class="c-topbar">
+    <a class="c-back" href="/" title="返回首页" aria-label="返回首页">‹</a>
+    <h1>我的</h1>
+    <span class="c-topbar-r" aria-hidden="true"></span>
+  </div>
+
+  <!-- ===================== 教练卡 ===================== -->
+  <section class="c-card">
+    <div class="c-coach">
+      <div class="c-coach-avatar" aria-hidden="true">🧑‍🏫</div>
+      <div class="c-coach-main">
+        <h2 class="c-coach-name">你好，教练</h2>
+        <p class="c-coach-sub">KPL · 年总模式</p>
+      </div>
+      <span class="c-coach-no" id="coachNo">NO.2026-00</span>
+    </div>
+  </section>
+
+  <!-- ===================== v51：四类赛事统计（春季赛 / 挑战者杯 / 夏季赛 / 年度总决赛） ===================== -->
+  <section class="c-card" id="statCard">
+    <div class="c-stat-head c-stat-head-global">
+      <strong>赛事统计</strong>
+      <span class="c-tier" id="tierGlobal">无名之辈</span>
+    </div>
+    <div id="statRows">
+      <!-- 四行由 static/js/career.js 按后端真实数据渲染（春季赛 / 挑战者杯 / 夏季赛 / 年度总决赛） -->
+    </div>
+  </section>
+
+  <!-- ===================== 我的战绩（本地 BP 记录） ===================== -->
+  <section class="c-card">
+    <h2 class="c-card-title">
+      我的战绩
+      <button type="button" class="c-link" id="btnEditNick">修改昵称</button>
+    </h2>
+    <div class="c-stat-block">
+      <div class="c-stat-head">
+        <strong id="careerNick">教练</strong>
+        <span class="c-tier" id="careerMeta">还没有对战记录</span>
+      </div>
+      <div class="c-stat-grid">
+        <div class="c-stat-cell"><span class="c-stat-num" id="csTotal">—</span><span class="c-stat-label">总场次</span></div>
+        <div class="c-stat-cell"><span class="c-stat-num" id="csWins">—</span><span class="c-stat-label">胜场</span></div>
+        <div class="c-stat-cell"><span class="c-stat-num" id="csLosses">—</span><span class="c-stat-label">负场</span></div>
+        <div class="c-stat-cell"><span class="c-stat-num" id="csWinRate">—</span><span class="c-stat-label">胜率</span></div>
+      </div>
+    </div>
+    <form class="nick-form" id="nickForm" hidden style="margin-top:10px;display:flex;gap:8px;">
+      <input class="c-input" id="nickInput" type="text" maxlength="16" autocomplete="off"
+             placeholder="输入昵称（最多16字）" style="font-size:15px;font-weight:600;">
+      <button class="c-btn c-btn-primary c-btn-sm" type="submit">保存</button>
+      <button class="c-btn c-btn-ghost c-btn-sm" type="button" id="nickCancel">取消</button>
+    </form>
+  </section>
+
+  <!-- ===================== 常用英雄 TOP5 ===================== -->
+  <section class="c-card">
+    <h2 class="c-card-title">常用英雄 TOP5 <span class="c-link" id="usageHint">按使用次数</span></h2>
+    <div class="usage-list" id="usageList">
+      <div class="c-skel"></div>
+    </div>
+  </section>
+
+  <!-- ===================== 荣誉墙 ===================== -->
+  <section class="c-card">
+    <h2 class="c-card-title">荣誉墙 <span class="c-link" id="badgeHint"></span></h2>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </section>
+
+  <div class="disclaimer" id="careerDisclaimer">
+    我的战绩与常用英雄保存在本机浏览器（localStorage），清除浏览器数据会一并丢失。
+    本作与赛事官方无关，所有 KPL 赛事数据版权归腾讯及赛事方所有。
+  </div>
+
+</div>
+
+{% endblock %}
+
+{# api.js 已由 base.html 统一加载（在 scripts block 之前），此处不再重复引入 #}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/career.js') }}"></script>
+{% endblock %}

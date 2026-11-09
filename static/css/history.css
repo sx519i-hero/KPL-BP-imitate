@@ -1,0 +1,330 @@
+/* ==========================================================================
+   v19 历史回看（只读）
+   与 career.css / bracket.css 共存，不改动任何既有样式。
+   暖橙主色 + 米白卡片，移动端优先。
+   ========================================================================== */
+
+.career-page .c-topbar .c-topbar-btn {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .22);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.career-page .c-topbar .c-topbar-btn:hover { background: rgba(255, 255, 255, .34); }
+.career-page .c-topbar .c-topbar-btn:active { transform: scale(.97); }
+
+/* ---------------------------- 弹层 ---------------------------- */
+.hx-mask {
+  position: fixed;
+  inset: 0; top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(60, 40, 26, .48);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.hx-mask[hidden] { display: none; }
+
+/* 打开弹层时锁住背景滚动（只加类，不改其它页面样式） */
+body.hx-lock { overflow: hidden; }
+
+.hx-modal {
+  width: min(960px, 100%);
+  max-height: min(92vh, 860px);
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #FFF9F2;
+  box-shadow: 0 18px 48px rgba(120, 70, 30, .28);
+}
+
+.hx-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--c-brand, #FF8C42) 0%, #FFB53F 100%);
+  color: #fff;
+}
+
+.hx-head h2 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.hx-close {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .24);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hx-close:hover { background: rgba(255, 255, 255, .38); }
+
+.hx-hint {
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #9A7B5F;
+  background: #FFF3E4;
+  border-bottom: 1px solid rgba(255, 140, 66, .16);
+}
+
+/* ---------------------------- 站点（系列赛）切换 ---------------------------- */
+.hx-series,
+.hx-stage {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.hx-series::-webkit-scrollbar,
+.hx-stage::-webkit-scrollbar { display: none; }
+.hx-stage { padding-top: 8px; }
+
+.hx-chip {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 140, 66, .34);
+  border-radius: 999px;
+  background: #fff;
+  color: #B4642D;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.hx-chip .hx-chip-sub {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #B99A82;
+}
+
+.hx-chip.is-active {
+  background: linear-gradient(135deg, var(--c-brand, #FF8C42), #FFB347);
+  border-color: transparent;
+  color: #fff;
+}
+
+.hx-chip.is-active .hx-chip-sub { color: rgba(255, 255, 255, .82); }
+.hx-chip.is-done:not(.is-active) { border-color: rgba(255, 140, 66, .55); }
+.hx-chip[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ---------------------------- 二级 Tab ---------------------------- */
+.hx-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 10px 14px 0;
+  padding: 4px;
+  border-radius: 12px;
+  background: #FFF0DF;
+}
+
+.hx-tab {
+  flex: 1 1 0;
+  min-height: 40px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #A87F5E;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hx-tab.is-active {
+  background: #fff;
+  color: #E3722B;
+  box-shadow: 0 2px 6px rgba(196, 121, 66, .16);
+}
+
+.hx-body {
+  flex: 1 1 auto;
+  min-height: 220px;
+  overflow-y: auto;
+  padding: 12px 14px 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hx-body > div[hidden] { display: none; }
+
+/* ---------------------------- 赛程行 ---------------------------- */
+.hx-list { display: flex; flex-direction: column; gap: 8px; }
+
+.hx-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 140, 66, .18);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.hx-row.is-mine { border-color: rgba(255, 140, 66, .55); background: #FFFBF6; }
+
+.hx-row-main { flex: 1 1 auto; min-width: 0; }
+
+.hx-row-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #B0917A;
+}
+
+.hx-badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #FFF0DF;
+  color: #C4783B;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hx-badge.is-mine { background: #FFE2C9; color: #C25F1C; }
+
+.hx-versus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #4B3A2D;
+}
+
+.hx-team { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hx-team.is-win { color: #E3722B; }
+
+.hx-vs { flex: 0 0 auto; color: #C4A992; font-size: 12px; font-weight: 600; }
+
+.hx-score {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: #FFF3E4;
+  color: #8C5A2E;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.hx-score.is-pending { background: #F4F0EC; color: #A8998C; font-weight: 700; }
+.hx-win-team { margin-top: 3px; font-size: 11px; color: #B0917A; }
+.hx-win-team b { color: #E3722B; }
+
+/* ---------------------------- 积分榜 ---------------------------- */
+.hx-table-group + .hx-table-group { margin-top: 12px; }
+.hx-table-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #8C5A2E;
+}
+
+.hx-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255, 140, 66, .18); }
+
+.hx-table {
+  width: 100%;
+  min-width: 460px;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 12px;
+}
+
+.hx-table th,
+.hx-table td {
+  padding: 7px 8px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 140, 66, .12);
+  white-space: nowrap;
+}
+
+.hx-table th { background: #FFF3E4; color: #A87F5E; font-weight: 700; }
+.hx-table td { color: #5A4636; font-variant-numeric: tabular-nums; }
+.hx-table tbody tr:last-child td { border-bottom: 0; }
+.hx-table td.team { text-align: left; font-weight: 700; color: #4B3A2D; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.hx-table tr.is-mine td { background: #FFF7EE; }
+.hx-table tr.is-mine td.team { color: #E3722B; }
+
+/* ---------------------------- 对阵图宿主 ---------------------------- */
+#hxBracketHost { min-height: 200px; }
+#hxBracketHost .bk-canvas { background: #fff; border-radius: 12px; }
+.hx-empty {
+  padding: 26px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #B0917A;
+}
+
+/* 名次表上方的说明条（v19 兼容旧存档时用到） */
+.hx-empty-top {
+  padding: 12px 10px 4px;
+  text-align: left;
+  line-height: 1.6;
+}
+
+/* ---------------------------- 底部 ---------------------------- */
+.hx-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid rgba(255, 140, 66, .14);
+  background: #FFFDFA;
+}
+
+.hx-foot-tip {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: #9A7B5F;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hx-foot .c-btn { flex: 0 0 auto; }
+
+/* ---------------------------- 小屏 ---------------------------- */
+@media (max-width: 560px) {
+  .hx-modal { max-height: 94vh; border-radius: 14px; }
+  .hx-head h2 { font-size: 15px; }
+  .hx-versus { font-size: 13px; }
+  .hx-score { font-size: 12px; }
+  .hx-table { min-width: 420px; }
+  .hx-body { padding: 10px 10px 4px; }
+  .hx-series, .hx-stage { padding-left: 10px; padding-right: 10px; }
+  .hx-tabs { margin: 8px 10px 0; }
+}

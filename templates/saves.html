@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}存档 · KPL 模拟 BP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/data.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/career.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="career-page" id="careerApp" data-page="saves">
+
+  <div class="c-topbar">
+    <a class="c-back" href="/" title="返回首页" aria-label="返回首页">‹</a>
+    <h1>存档</h1>
+    <span class="c-topbar-r" aria-hidden="true"></span>
+  </div>
+
+  <!-- v47：存档独立成页（底部导航「存档」），只负责列表 / 继续 / 重命名 / 删除。
+       逻辑复用 static/js/career.js 里的 renderSaves / saveFilter / 重命名 / 删除，
+       元素 id 与 career.js 保持一致（career.js 对缺失元素都有 if (el.x) 保护）。 -->
+  <div class="c-filter" id="saveFilter" role="tablist" aria-label="存档分类">
+    <button type="button" class="c-filter-btn is-active" data-cat="all" role="tab" aria-selected="true">全部</button>
+    <button type="button" class="c-filter-btn" data-cat="league" role="tab" aria-selected="false">联赛</button>
+    <button type="button" class="c-filter-btn" data-cat="cup" role="tab" aria-selected="false">杯赛</button>
+    <button type="button" class="c-filter-btn" data-cat="package" role="tab" aria-selected="false">赛程包</button>
+  </div>
+
+  <div id="currentWrap">
+    <div class="c-skel"></div>
+  </div>
+
+  <button type="button" class="c-btn c-btn-primary c-btn-block c-btn-lg" id="btnNewCareer"
+          style="margin-top:12px">+ 去选赛事，开启新的年总赛程</button>
+
+  <div class="disclaimer" id="careerDisclaimer">
+    存档保存在本机 data/tourney 目录，换电脑可以整个文件夹一起拷走。
+    本作与赛事官方无关，所有 KPL 赛事数据版权归腾讯及赛事方所有。
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/saves.js') }}"></script>
+{% endblock %}

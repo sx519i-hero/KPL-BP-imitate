@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}突围赛选对手 · KPL 年总模式{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/career.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="career-page" id="breakoutApp" data-page="career-breakout">
+
+  <div class="c-topbar">
+    <a class="c-back" href="/career" title="返回生涯首页" aria-label="返回生涯首页">‹</a>
+    <h1>突围赛</h1>
+    <span class="c-topbar-r" aria-hidden="true"></span>
+  </div>
+
+  <h2 class="c-draw-title" id="boTitle">突围赛 · 选对手</h2>
+  <p class="c-draw-sub" id="boSub">擂台赛已结束。大师组第 5 先选，大师组第 6 再选，最后剩下两支自动配对。</p>
+
+  <section class="c-card">
+    <div class="c-gate-head"><span>大师组 · 按顺位选对手</span></div>
+    <div class="bo-team-list" id="boMasters"></div>
+    <div class="c-gate-head"><span>可选对手（大师组第 6 或 精英组第 2~5）</span></div>
+    <div class="bo-team-list" id="boElite"></div>
+  </section>
+
+  <section class="c-card">
+    <div class="c-gate-head"><span>突围赛对阵</span></div>
+    <div class="bo-pairs" id="boPairs"><div class="c-empty">还没有确定的对阵</div></div>
+  </section>
+
+  <div class="c-gate-card" id="boTurnCard">
+    <div class="c-gate-head"><span id="boTurnTitle">准备中…</span></div>
+    <p class="c-gate-sub" id="boTurnSub">—</p>
+  </div>
+
+  <button type="button" class="c-btn c-btn-primary c-btn-block c-btn-lg" id="btnBoStart" hidden>
+    开始突围赛
+  </button>
+
+  <div id="boError" class="c-card" hidden>
+    <div class="c-empty" id="boErrorText">—</div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/career_breakout.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}赛季进程 · KPL 年总模式{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/career.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bracket.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="career-page" id="seasonApp" data-page="career-season">
+
+  <div class="c-topbar">
+    <a class="c-back" href="/career" title="返回生涯首页" aria-label="返回生涯首页">‹</a>
+    <h1>赛季进程</h1>
+    <button type="button" class="c-topbar-btn" id="btnHistory" title="回看已完成站点的赛程、积分榜与对阵图">📜 历史</button>
+  </div>
+
+  <!-- ===================== 阶段卡 ===================== -->
+  <section class="c-card c-stage-card">
+    <div class="c-stage-line">
+      <span class="c-stage-name" id="stageName">—</span>
+      <span class="c-stage-rec" id="stageRec">0胜0负</span>
+    </div>
+    <div class="c-stage-series" id="stageSeries">—</div>
+    <div class="c-progress"><i id="stageProgress" style="width:0%"></i></div>
+    <div class="c-stage-day" id="stageDay">第 1 / 1 比赛日</div>
+    <div class="c-stage-rules" id="stageRules">—</div>
+  </section>
+
+  <!-- ============ 赛程闸门（打完一站 / 进淘汰赛前停下来等玩家点按钮） ============ -->
+  <section class="c-card c-gate-card" id="gateCard" hidden>
+    <div class="c-gate-head">
+      <span class="c-gate-icon" id="gateIcon">🏁</span>
+      <div class="c-gate-titles">
+        <strong id="gateTitle">开启下一赛程</strong>
+        <span id="gateSub">该站已结束，点击按钮开启下一站</span>
+      </div>
+    </div>
+    <div class="c-gate-teams" id="gateTeams"></div>
+    <button type="button" class="c-btn c-btn-primary c-btn-block" id="btnGate">开启下一赛程</button>
+  </section>
+
+  <!-- ===================== Tab（年度积分改为第四个 Tab） ===================== -->
+  <div class="c-tabs" role="tablist">
+    <button type="button" class="c-tab is-active" id="tabSchedule" role="tab" aria-selected="true">赛程</button>
+    <button type="button" class="c-tab" id="tabStandings" role="tab" aria-selected="false">积分榜</button>
+    <button type="button" class="c-tab" id="tabBracket" role="tab" aria-selected="false">对阵图</button>
+    <button type="button" class="c-tab" id="tabAnnual" role="tab" aria-selected="false" hidden>年度积分</button>
+  </div>
+
+  <!-- ===================== 赛程 ===================== -->
+  <div id="paneSchedule">
+    <div class="c-day-scroll" id="dayScroll"></div>
+    <div id="matchList"><div class="c-skel"></div><div class="c-skel"></div></div>
+  </div>
+
+  <!-- ===================== 积分榜 ===================== -->
+  <div id="paneStandings" hidden>
+    <div id="standingsBody"><div class="c-skel"></div></div>
+  </div>
+
+  <!-- ===================== 对阵图（淘汰赛流程图，实时更新） ===================== -->
+  <div id="paneBracket" hidden>
+    <div class="c-day-scroll" id="bracketStageChips"></div>
+    <div class="bk-host" id="bracketHost"><div class="c-skel"></div></div>
+  </div>
+
+  <!-- ===================== 年度积分（从独立卡片改成 Tab 内容） ===================== -->
+  <div id="paneAnnual" hidden>
+    <section class="c-card c-annual-card" id="annualCard">
+      <div class="c-annual-head">
+        <strong>年度积分</strong>
+        <span class="c-annual-tip" id="annualTip">春季赛 / 挑战者杯 / 夏季赛 累计</span>
+      </div>
+      <div class="c-annual-body" id="annualBody"><div class="c-skel"></div></div>
+    </section>
+  </div>
+
+  <!-- ===================== 底部按钮 ===================== -->
+  <div class="c-bottom-bar">
+    <button type="button" class="c-btn c-btn-ghost" id="btnSimNext">模拟下一场比赛</button>
+    <button type="button" class="c-btn c-btn-primary" id="btnJumpMine">推进到我的比赛</button>
+  </div>
+
+</div>
+
+<!-- 生涯结束弹层 -->
+<div class="c-modal-mask" id="finishModal" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="finishTitle">
+    <h2 id="finishTitle">赛季结束</h2>
+    <div id="finishBody" class="c-empty" style="padding:10px 0;">—</div>
+    <div class="c-modal-foot">
+      <button type="button" class="c-btn c-btn-primary" id="finishClose">返回生涯首页</button>
+    </div>
+  </div>
+</div>
+<!-- ===================== 历史回看 ===================== -->
+<div class="c-modal-mask hx-mask" id="historyModal" hidden>
+  <div class="c-modal hx-modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+    <div class="hx-head">
+      <h2 id="historyTitle">历史回看</h2>
+      <button type="button" class="hx-close" id="historyClose" aria-label="关闭历史回看">✕</button>
+    </div>
+    <div class="hx-hint">这里只是回看，不会影响赛季进度，随时可以继续打。</div>
+
+    <div class="hx-series" id="historySeries"></div>
+    <div class="hx-stage" id="historyStage"></div>
+
+    <div class="hx-tabs" role="tablist">
+      <button type="button" class="hx-tab is-active" id="hxTabSchedule" role="tab" aria-selected="true">赛程</button>
+      <button type="button" class="hx-tab" id="hxTabStandings" role="tab" aria-selected="false">积分榜</button>
+      <button type="button" class="hx-tab" id="hxTabBracket" role="tab" aria-selected="false">对阵图</button>
+    </div>
+
+    <div class="hx-body">
+      <div id="hxPaneSchedule">
+        <div class="c-day-scroll" id="hxDayScroll"></div>
+        <div id="hxMatchList"><div class="c-skel"></div><div class="c-skel"></div></div>
+      </div>
+      <div id="hxPaneStandings" hidden><div id="hxStandings"><div class="c-skel"></div></div></div>
+      <div id="hxPaneBracket" hidden><div class="bk-host" id="hxBracketHost"><div class="c-skel"></div></div></div>
+    </div>
+
+    <div class="hx-foot">
+      <span class="hx-foot-tip" id="hxSummary">—</span>
+      <button type="button" class="c-btn c-btn-primary" id="historyResume">继续比赛</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/bracket.js') }}"></script>
+<script src="{{ url_for('static', filename='js/career_season.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}选择赛事 · KPL 年总模式{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/career.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="career-page" id="teamApp" data-page="career-team">
+
+  <div class="c-topbar">
+    <a class="c-back" href="/career" title="返回生涯首页" aria-label="返回生涯首页">‹</a>
+    <h1 id="topTitle">年总模式</h1>
+    <span class="c-topbar-r" aria-hidden="true"></span>
+  </div>
+
+  <!-- ===================== 赛事选择（常驻下拉，随时可换赛事） ===================== -->
+  <div class="c-card" id="tplPickCard">
+    <div class="c-card-title">赛事选择<span class="sub" id="tplPickStatus"></span></div>
+    <div class="field">
+      <select class="select" id="tplSelect" aria-label="选择赛事模板">
+        <option value="annual_package">年度赛程包（春季赛 → 挑战者杯 → 夏季赛 → 年度总决赛）</option>
+      </select>
+    </div>
+    <div class="field" style="margin-top:10px">
+      <select class="select" id="editionSelect" aria-label="选择赛事届次">
+        <option value="">正在读取赛事届次…</option>
+      </select>
+    </div>
+    <p class="field-hint" id="tplPickHint" style="margin-top:8px">
+      先选赛事，再选届次（哪一年哪一届）。届次来自真实赛事数据，抓取到新的赛事后会自动出现。
+    </p>
+  </div>
+
+  <!-- ===================== 赛事信息（选好赛事后可见） ===================== -->
+  <div id="eventHead" hidden>
+    <div class="c-event-head">
+      <h2 class="c-event-name" id="eventName">—</h2>
+      <p class="c-event-desc" id="eventDesc">—</p>
+    </div>
+
+    <div class="c-tipbar">
+      <span aria-hidden="true">🏆</span>
+      <span id="coachTip">你带领过 <b>0</b> 支战队，夺得了 <b>0</b> 冠，目前</span>
+      <span class="c-chip-gray" id="coachTier">无名之辈</span>
+    </div>
+
+    <!-- 战队网格 -->
+    <div id="teamGridView">
+      <div class="c-team-grid" id="teamGrid">
+        <div class="c-skel"></div>
+        <div class="c-skel"></div>
+        <div class="c-skel"></div>
+        <div class="c-skel"></div>
+      </div>
+
+      <ul class="c-rules-list" style="margin-bottom:14px;">
+        <li>战队 BP 数据取自 <span id="ruleLeague">该赛事</span>，不使用其他赛季数据。</li>
+        <li>阵容评分 / 比分 / 胜负均由「五维」模型模拟生成，评的是 BP 选出的阵容评分，纯娱乐，不代表该战队真实强度 / 胜率。</li>
+      </ul>
+
+      <button type="button" class="c-btn c-btn-ghost c-btn-block" id="btnCustomToggle">
+        自建战队（不从列表里选）
+      </button>
+    </div>
+
+    <!-- 自建战队登记表 -->
+    <div id="customView" hidden>
+      <section class="c-card">
+        <div class="c-form-row" style="border-bottom:0;padding-bottom:0;">
+          <strong style="font-size:16px;">新战队登记表</strong>
+          <span class="c-form-count" id="formNo">NO.2026-00</span>
+        </div>
+
+        <div class="c-form-row" style="border-bottom:0;padding-bottom:0;">
+          <span class="c-form-label">战队名称</span>
+          <span class="c-form-count"><span id="nameCount">0</span> / 5</span>
+        </div>
+        <input class="c-input" id="customName" type="text" maxlength="5" autocomplete="off"
+               placeholder="YOUR TEAM">
+
+        <div class="c-form-row" style="border-bottom:0;padding-bottom:0;">
+          <span class="c-form-label">所属赛事</span>
+        </div>
+        <div class="c-form-static" id="customLeague">—</div>
+
+        <div class="c-form-row" style="border-bottom:0;padding-bottom:0;">
+          <span class="c-form-label">参赛规模</span>
+        </div>
+        <div class="c-form-static" id="customScale">—</div>
+      </section>
+
+      <section class="c-card">
+        <h2 class="c-card-title">规则速览</h2>
+        <ul class="c-rules-list">
+          <li>一比一还原 KPL 赛事真实赛制（联赛分组循环 / 挑杯瑞士轮 / 年总突围赛 + 双败淘汰）。</li>
+          <li>战队 BP 数据取自 <span id="ruleLeague2">该赛事</span>。</li>
+          <li>阵容评分 / 比分 / 胜负均由「五维」模型模拟生成，评的是 BP 选出的阵容评分，纯娱乐，不代表该战队真实强度 / 胜率。</li>
+        </ul>
+      </section>
+
+      <button type="button" class="c-btn c-btn-primary c-btn-block c-btn-lg" id="btnCustomSubmit" aria-disabled="true">
+        提交
+      </button>
+      <button type="button" class="c-draw-skip" id="btnCustomBack">返回战队列表</button>
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="c-bottom-bar" id="bottomBar">
+      <button type="button" class="c-btn c-btn-primary c-btn-lg c-btn-block" id="btnPickTeam" aria-disabled="true" disabled>
+        选择一支战队
+      </button>
+    </div>
+  </div>
+
+  <!-- 没选赛事时的空态 -->
+  <div id="needEvent" class="c-card" hidden>
+    <div class="c-empty">
+      请选择一项赛事开始生涯。<br>
+      <button type="button" class="c-btn c-btn-primary c-btn-sm" id="btnOpenEvents" style="margin-top:12px;">
+        选择赛事
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== 选择赛事弹窗 ===================== -->
+<div class="c-modal-mask" id="eventModal" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+    <h2 id="eventModalTitle">选择赛事</h2>
+    <div id="eventGroups">
+      <div class="c-skel"></div>
+      <div class="c-skel"></div>
+    </div>
+    <div class="c-modal-foot">
+      <button type="button" class="c-btn c-btn-cancel" id="btnEventCancel">取消</button>
+      <button type="button" class="c-btn c-btn-primary" id="btnEventConfirm" aria-disabled="true" disabled>
+        确认开启
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/career_team.js') }}"></script>
+{% endblock %}
